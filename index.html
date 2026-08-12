@@ -6,8 +6,9 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#121212;color:#fff;padding:15px;font-family:system-ui}
 .title-sign{text-align:center;margin:8px 0;color:#60a5fa;font-size:18px}
-#fullBtn{position:fixed;top:10px;right:240px;background:#ff6722;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
-#musicJumpBtn{position:fixed;top:10px;right:110px;background:#c23631;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
+/* 修改距离，彻底分开不重叠 */
+#fullBtn{position:fixed;top:10px;right:200px;background:#ff6722;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
+#musicJumpBtn{position:fixed;top:10px;right:90px;background:#c23631;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
 .qiling-avatar{
     position:fixed;top:8px;right:10px;width:52px;height:52px;border-radius:50%;
     border:2px solid #60a5fa;z-index:1000;object-fit:cover;
@@ -27,7 +28,7 @@ button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:no
 .joystick button{width:70px;height:70px;font-size:26px;margin:0;border-radius:10px;background:#27ae60;font-weight:bold}
 .void{background:transparent !important;border:none !important}
 #takeBtn{width:100%;padding:12px;border:none;background:#2563eb;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
-#captureBtn{width:100%;padding:12px;border:none;background:#28a745;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
+#captureBtn{width:100%;padding:12px;border:none;background:#28a745;color:#fff;border-radius:6px;margin-top:10px}
 #videoEle{width:100%;border-radius:8px;margin-top:10px;display:block}
 input[type="range"]{width:100%;margin:6px 0}
 .chess-wrap{max-width:360px;margin:15px auto 0;text-align:center}
@@ -348,7 +349,7 @@ function drawPiece(x,y,type){
         chessTip.innerText = curBlackTurn ? "黑子回合" : "白子回合";
     }
 })
-function checkWin(px,py,val){
+function checkWin(px,val){
     const dirs = [[1,0],[0,1],[1,1],[1,-1]];
     for(let [dx,dy] of dirs){
         let cnt = 1;
