@@ -6,7 +6,6 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#121212;color:#fff;padding:15px;font-family:system-ui}
 .title-sign{text-align:center;margin:8px 0;color:#60a5fa;font-size:18px}
-/* 修改距离，彻底分开不重叠 */
 #fullBtn{position:fixed;top:10px;right:200px;background:#ff6722;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
 #musicJumpBtn{position:fixed;top:10px;right:90px;background:#c23631;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
 .qiling-avatar{
@@ -28,7 +27,7 @@ button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:no
 .joystick button{width:70px;height:70px;font-size:26px;margin:0;border-radius:10px;background:#27ae60;font-weight:bold}
 .void{background:transparent !important;border:none !important}
 #takeBtn{width:100%;padding:12px;border:none;background:#2563eb;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
-#captureBtn{width:100%;padding:12px;border:none;background:#28a745;color:#fff;border-radius:6px;margin-top:10px}
+#captureBtn{width:100%;padding:12px;border:none;background:#28a745;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
 #videoEle{width:100%;border-radius:8px;margin-top:10px;display:block}
 input[type="range"]{width:100%;margin:6px 0}
 .chess-wrap{max-width:360px;margin:15px auto 0;text-align:center}
@@ -36,7 +35,6 @@ input[type="range"]{width:100%;margin:6px 0}
 #boardGo{background:#DEB887;border:3px solid #8b572a;display:none}
 .chess-ctrl{margin:10px 0;gap:8px;display:flex;justify-content:center;flex-wrap:wrap}
 .tip-text{font-size:17px;margin:8px 0;color:#ffd769}
-/*相机布局：上方大图预览，下方摄像头 */
 #imgBox img{
     width:100%;
     border-radius:10px;
@@ -60,9 +58,7 @@ input[type="range"]{width:100%;margin:6px 0}
 <!--相机模块：大图在上，摄像头在下，默认首页 -->
 <div id="camera">
 <h3>前置自拍工具</h3>
-<!-- 上方：拍摄完成的大图，方便欣赏 -->
 <div id="imgBox"></div>
-<!-- 下方：实时摄像头画面+拍照按钮 -->
 <video id="videoEle" autoplay playsinline muted></video>
 <button id="captureBtn">点击拍照</button>
 <canvas id="shotCanvas" style="display:none"></canvas>
@@ -129,10 +125,13 @@ function jumpMusic(){
     window.open("https://music.163.com/#/song?id=1480330021","_blank");
 }
 
-//全屏
+//全屏功能修复
 function toggleFull(){
-    if(!document.fullscreenElement) document.documentElement.requestFullscreen();
-    else document.exitFullscreen();
+    if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement) {
+        document.documentElement.requestFullscreen().catch(e=>{});
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+    }
 }
 
 //页面切换逻辑，默认打开相机
@@ -156,7 +155,6 @@ function doCapture(){
     shotCanvas.height = videoEle.videoHeight;
     ctxShot.drawImage(videoEle,0,0);
     const url = shotCanvas.toDataURL("image/png");
-    //大图铺满页面上方，方便欣赏
     imgBox.innerHTML = `<img src="${url}"><a download="自拍.png"><button id="takeBtn">保存图片</button></a>`;
 }
 (async ()=>{
@@ -284,17 +282,18 @@ document.addEventListener("keydown",e=>{
     if(map[e.key]) setDir(map[e.key]);
 })
 
-//双人五子棋围棋
-let chessCtx, gridNum, cell, boardSize = 360;
+//双人五子棋围棋 修复棋盘空白问题
+let chessCtx, gridNum, cell, boardSize = 36;
 let chessMap, historyList, curBlackTurn;
 const chessTip = document.getElementById("chessTip");
 function switchChess(num){
-    gridNum = num;
+    gridNum = num === 5 ? 15 : 19;
     const five = document.getElementById("boardFive");
     const go = document.getElementById("boardGo");
-    five.style.display = num===15 ? "block" : "none";
-    go.style.display = num===19 ? "block" : "none";
-    chessCtx = num===15 ? five.getContext("2d") : go.getContext("2d");
+    five.style.display = num === 15 ? "block" : "none";
+    go.style.display = num === 19 ? "block" : "none";
+    //每次切换重新获取画布上下文，修复空白
+    chessCtx = num === 15 ? five.getContext("2d") : go.getContext("2d");
     cell = boardSize / gridNum;
     resetChess();
 }
@@ -349,7 +348,8 @@ function drawPiece(x,y,type){
         chessTip.innerText = curBlackTurn ? "黑子回合" : "白子回合";
     }
 })
-function checkWin(px,val){
+//修复函数参数缺失bug
+function checkWin(px,py,val){
     const dirs = [[1,0],[0,1],[1,1],[1,-1]];
     for(let [dx,dy] of dirs){
         let cnt = 1;
