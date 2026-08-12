@@ -1,499 +1,424 @@
 <!DOCTYPE html>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>多功能网页合集</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#121212;color:#fff;padding:15px;font-family:system-ui}
-/*顶部署名*/
-.title-sign{text-align:center;margin:8px 0;color:#60a5fa;font-size:18px;}
-/*全屏、音乐按钮、褚嬴头像 右上角固定*/
+.title-sign{text-align:center;margin:8px 0;color:#60a5fa;font-size:18px}
 #fullBtn{position:fixed;top:10px;right:130px;background:#ff6722;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
 #musicBtn{position:fixed;top:10px;right:80px;background:#28a745;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
-.qiling-avatar{
-    position:fixed;top:8px;right:10px;width:52px;height:52px;border-radius:50%;
-    border:2px solid #60a5fa;z-index:1000;object-fit:cover;
-}
+.avatar{position:fixed;top:8px;right:10px;width:52px;height:52px;border-radius:50%;border:2px solid #60a5fa;z-index:1000;object-fit:cover}
 .tab-box{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap}
 .tab{padding:10px 20px;border:none;border-radius:6px;background:#2563eb;color:#fff;font-size:16px}
-.hide{display:none}
-/*贪吃蛇样式*/
+.hide{display:none !important}
 #gameCanvas{border:2px solid #4cd964;background:#000;margin:0 auto;display:block}
 .info{margin:12px 0;font-size:18px;text-align:center}
-.shop-panel{border:1px solid #444;border-radius:8px;padding:12px;margin:12px 0}
-.shop-item{display:flex;justify-content:space-between;align-items:center;margin:8px 0;padding:6px;border:#333 solid 1px;border-radius:4px}
-.setting-panel{border:1px solid #444;border-radius:8px;padding:12px;margin:12px 0;background:#1e1e1e;}
+.panel{border:1px solid #444;border-radius:8px;padding:12px;margin:12px 0;background:#1e1e1e}
+.item{display:flex;justify-content:space-between;align-items:center;margin:8px 0;padding:6px;border:1px solid #444;border-radius:4px}
 .btn-group{margin-top:12px;text-align:center}
 button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:none;color:#000;border-radius:6px}
-#applySettingBtn{background:#2563eb;color:#fff;}
-#startGameBtn{background:#4cd964;color:#000;}
-.joystick{margin-top:20px;display:grid;grid-template-columns:70px 70px;grid-template-rows:70px 70px 70px;gap:8px;justify-content:center}
+#applySettingBtn{background:#2563eb;color:#fff}
+#startGameBtn{background:#4cd964;color:#000}
+.joystick{margin-top:20px;display:grid;grid-template-columns:70px 70px 70px;grid-template-rows:70px 70px 70px;gap:8px;justify-content:center}
 .joystick button{width:70px;height:70px;font-size:26px;margin:0;border-radius:10px;background:#27ae60;font-weight:bold}
-.void{background:transparent;border:none}
+.void{background:transparent !important;border:none !important}
 #takeBtn{width:100%;padding:12px;border:none;background:#2563eb;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
 #captureBtn{width:100%;padding:12px;border:none;background:#28a745;color:#fff;border-radius:6px;margin-top:10px}
 #videoEle{width:100%;border-radius:8px;margin-top:10px;display:block}
-input[type="range"]{width:100%;margin:6px 0;}
-/*棋类棋盘样式*/
-.chess-wrap{max-width:360px;margin:0 auto;text-align:center;margin-top:15px}
+input[type="range"]{width:100%;margin:6px 0}
+.chess-wrap{max-width:360px;margin:15px auto 0;text-align:center}
 #boardFive{background:#DEB887;border:3px solid #8b572a}
 #boardGo{background:#DEB887;border:3px solid #8b572a;display:none}
 .chess-ctrl{margin:10px 0;gap:8px;display:flex;justify-content:center;flex-wrap:wrap}
-.player-tip{font-size:17px;margin:8px 0;color:#ffd769}
-audio{display:none;}
+.tip-text{font-size:17px;margin:8px 0;color:#ffd769}
+audio{display:none}
 </style>
 
 <body>
-<!--背景音乐播放器 隐藏-->
 <audio id="chessBgm" loop preload="auto">
-    <source src="https://music.163.com/song/media/outer/url?id=1448720020.mp3" type="audio/mpeg">
+<!-- 把下面src替换成本地音频文件路径，解决防盗链无声 -->
+<source src="" type="audio/mpeg">
 
 
-<!--顶部署名-->
-<div class="title-sign">本页面由王忆轩借助AI编写生成</div>
-<!--右上角控制按钮+褚嬴头像-->
+<div class="title-sign">本页面由王忆轩借助AI编写</div>
 <button id="fullBtn" onclick="toggleFull()">全屏</button>
-<button id="musicBtn" onclick="toggleBgm()">暂停音乐</button>
-<img class="qiling-avatar" src="https://p3.toutiaoimg.com/tos-cn-i-6w9my0ksvp/43623e20803b4408990201771d314111~tplv-6w9my0ksvp-image.image" alt="褚嬴棋魂">
+<button id="musicBtn" onclick="toggleBgm()">播放音乐</button>
+<img class="avatar" src="https://p3.toutiaoimg.com/tos-cn-i-6w9my0ksvp/43623e20803b4408990201771d314111~tplv-6w9my0ksvp-image.image">
 
-<!--功能切换标签-->
 <div class="tab-box">
-    <button class="tab" onclick="switchPage('camera')">自拍相机</button>
-    <button class="tab" onclick="switchPage('snake')">贪吃蛇游戏</button>
-    <button class="tab" onclick="switchPage('chess')">五子棋&围棋</button>
+<button class="tab" onclick="switchPage('camera')">自拍相机</button>
+<button class="tab" onclick="switchPage('snake')">贪吃蛇</button>
+<button class="tab" onclick="switchPage('chess')">五子棋&围棋</button>
 </div>
 
-<!--相机模块-->
-<div id="camera">
-    <h3>前置自拍工具</h3>
-    <div id="container">
-        <video id="videoEle" autoplay playsinline muted></video>
-        <button id="captureBtn">点击拍照</button>
-        <canvas id="shotCanvas" style="display:none;"></canvas>
-        <div id="imgBox"></div>
-    </div>
+<div id="camera" class="hide">
+<h3>前置相机</h3>
+<div>
+<video id="videoEle" autoplay playsinline muted></video>
+<button id="captureBtn">拍照</button>
+<canvas id="shotCanvas" style="display:none"></canvas>
+<div id="imgBox"></div>
+</div>
 </div>
 
-<!--贪吃蛇模块-->
 <div id="snake" class="hide">
-    <div class="info">本局分数：<span id="score">0</span>｜永久总积分：<span id="totalScore">0</span></div>
-    <div class="setting-panel">
-        <h4>🎮 参数自定义</h4>
-        <div style="margin-top:10px;">
-            <label>移动间隔(越小越快)：<span id="speedValue">120</span>ms</label>
-            <input type="range" id="speedSlider" min="40" max="250" value="120">
-        </div>
-        <div style="margin-top:10px;">
-            <label>基础格子大小：<span id="sizeValue">16</span></label>
-            <input type="range" id="sizeSlider" min="12" max="32" value="16">
-        </div>
-        <div style="margin-top:10px;text-align:center;">
-            <button id="applySettingBtn">应用本局参数</button>
-        </div>
-    </div>
-    <div class="shop-panel">
-        <h4>🏪技能商店</h4>
-        <div class="shop-item">
-            <span>⚡加速(本局生效) - 50积分</span>
-            <button onclick="buySkill('speed',50)">购买</button>
-        </div>
-        <div class="shop-item">
-            <span>🌌穿墙(本局生效) - 100积分</span>
-            <button onclick="buySkill('passwall',100)">购买</button>
-        </div>
-        <div class="shop-item">
-            <span>🛡护盾1次(本局生效) - 150积分</span>
-            <button onclick="buySkill('shield',150)">购买</button>
-        </div>
-    </div>
-    <canvas id="gameCanvas" width="320" height="320"></canvas>
-    <div class="btn-group">
-        <button id="startGameBtn">开始游戏</button>
-    </div>
-    <div class="joystick">
-        <button class="void"></button>
-        <button ontouchstart="setDir('UP')">↑</button>
-        <button class="void"></button>
-        <button ontouchstart="setDir('LEFT')">←</button>
-        <button class="void"></button>
-        <button ontouchstart="setDir('RIGHT')">→</button>
-        <button class="void"></button>
-        <button ontouchstart="setDir('DOWN')">↓</button>
-        <button class="void"></button>
-    </div>
+<div class="info">分数：<span id="score">0</span>｜历史最高分：<span id="totalScore">0</span></div>
+<div class="panel">
+<h4>设置</h4>
+<div>
+<label>移动间隔(ms)：<span id="speedVal">120</span></label>
+<input type="range" id="speedSlider" min="40" max="250" value="120">
+</div>
+<div>
+<label>格子大小：<span id="sizeVal">16</span></label>
+<input type="range" id="sizeSlider" min="12" max="32" value="16">
+</div>
+<div style="text-align:center;margin-top:10px">
+<button id="applySettingBtn">应用设置</button>
+</div>
+</div>
+<div class="panel">
+<h4>商店</h4>
+<div class="item"><span>⚡加速</span><button onclick="buySkill('speed',50)">50分</button></div>
+<div class="item"><span>🌌穿墙</span><button onclick="buySkill('passwall',100)">100分</button></div>
+<div class="item"><span>🛡护盾一次</span><button onclick="buySkill('shield',150)">150分</button></div>
+</div>
+<canvas id="gameCanvas" width="320" height="320"></canvas>
+<div class="btn-group">
+<button id="startGameBtn">开始游戏</button>
+</div>
+<div class="joystick">
+<div class="void"></div>
+<button ontouchstart="setDir('up')">↑</button>
+<div class="void"></div>
+<button ontouchstart="setDir('left')">←</button>
+<div class="void"></div>
+<button ontouchstart="setDir('right')">→</button>
+<div class="void"></div>
+<button ontouchstart="setDir('down')">↓</button>
+<div class="void"></div>
+</div>
 </div>
 
-<!--五子棋+围棋模块-->
 <div id="chess" class="hide">
-    <div class="player-tip" id="chessTip">你执黑子双击落子，AI褚嬴执白子自动下棋</div>
-    <div class="chess-ctrl">
-        <button onclick="switchChess(5)">人机五子棋(AI白子)</button>
-        <button onclick="switchChess(19)">双人围棋</button>
-        <button onclick="resetChess()">重新开局</button>
-        <button onclick="undoChess()">悔棋一步</button>
-    </div>
-    <div class="chess-wrap">
-        <canvas id="boardFive" width="360" height="360"></canvas>
-        <canvas id="boardGo" width="360" height="360"></canvas>
-    </div>
+<div class="tip-text" id="chessTip">你执黑子双击落子，AI褚嬴执白子自动下棋</div>
+<div class="chess-ctrl">
+<button onclick="switchChess(5)">人机五子棋</button>
+<button onclick="switchChess(19)">双人围棋</button>
+<button onclick="resetChess()">重新开局</button>
+<button onclick="undoChess()">悔棋</button>
+</div>
+<div class="chess-wrap">
+<canvas id="boardFive" width="360" height="360"></canvas>
+<canvas id="boardGo" width="360" height="360"></canvas>
+</div>
 </div>
 
 <script>
-//音频全局变量
 const bgm = document.getElementById("chessBgm");
 const musicBtn = document.getElementById("musicBtn");
-//音乐切换按钮
 function toggleBgm(){
-    if(bgm.paused){
-        bgm.play();
-        musicBtn.innerText = "暂停音乐";
-    }else{
-        bgm.pause();
-        musicBtn.innerText = "播放音乐";
-    }
+if(bgm.paused){
+bgm.play().catch(e=>{});
+musicBtn.innerText="暂停音乐";
+}else{
+bgm.pause();
+musicBtn.innerText="播放音乐";
 }
-
-//全局全屏函数
+}
 function toggleFull(){
-    if(!document.fullscreenElement) document.documentElement.requestFullscreen();
-    else document.exitFullscreen();
+if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+else document.exitFullscreen();
 }
-
-//页面模块切换【核心：切棋页播放BGM，其他页面暂停】
 function switchPage(type){
-    document.querySelectorAll("#camera,#snake,#chess").forEach(el=>el.classList.add("hide"));
-    document.getElementById(type).classList.remove("hide");
-    //切换页面控制背景音乐
-    if(type === "chess"){
-        bgm.play().catch(e=>console.log("首次点击页面后音乐才能播放"));
-        musicBtn.innerText = "暂停音乐";
-    }else{
-        bgm.pause();
-        musicBtn.innerText = "播放音乐";
-    }
-    if(type==='snake') loadTotalScore();
-    if(type==='chess') initChess();
+document.querySelectorAll("#camera,#snake,#chess").forEach(el=>el.classList.add("hide"));
+document.getElementById(type).classList.remove("hide");
+if(type==="chess"){
+musicBtn.innerText="暂停音乐";
+}else{
+bgm.pause();
+musicBtn.innerText="播放音乐";
+}
+if(type==="snake") loadSnakeStorage();
+if(type==="chess") initChess();
 }
 
-//=====相机逻辑：刷新页面自动拍照一次，后续仅按钮点击拍照=====
-const videoEle = document.getElementById('videoEle');
-const shotCanvas = document.getElementById('shotCanvas');
-const ctxShot = shotCanvas.getContext('2d');
-let hasAutoCaptured = false;
-function doCapture(){
-    shotCanvas.width = videoEle.videoWidth;
-    shotCanvas.height = videoEle.videoHeight;
-    ctxShot.drawImage(videoEle,0,0);
-    const imgUrl = shotCanvas.toDataURL("image/png");
-    document.getElementById('imgBox').innerHTML = `
-    <img src="${imgUrl}" style="width:100%;border-radius:8px;margin-top:10px;">
-    <a href="${imgUrl}" download="自拍图片.png"><button id="takeBtn">保存图片到本地</button></a>`
+//相机
+const videoEle=document.getElementById("videoEle");
+const shotCanvas=document.getElementById("shotCanvas");
+const ctxShot=shotCanvas.getContext("2d");
+const imgBox=document.getElementById("imgBox");
+let camReady=false;
+(async function(){
+try{
+const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});
+videoEle.srcObject=stream;
+camReady=true;
+}catch(e){console.log("相机权限异常")}
+})();
+document.getElementById("captureBtn").onclick=()=>{
+if(!camReady)return;
+shotCanvas.width=videoEle.videoWidth;
+shotCanvas.height=videoEle.videoHeight;
+ctxShot.drawImage(videoEle,0,0);
+const url=shotCanvas.toDataURL("image/png");
+imgBox.innerHTML=`<img src="${url}" style="width:100%;border-radius:8px;margin-top:10px;"><a href="${url}" download="photo.png"><button id="takeBtn">保存图片</button></a>`;
 }
-(async ()=>{
-    let stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});
-    videoEle.srcObject = stream;
-    videoEle.addEventListener('loadeddata',()=>{
-        if(!hasAutoCaptured){doCapture();hasAutoCaptured=true;}
-    })
-})()
-document.getElementById('captureBtn').onclick = doCapture;
 
-//=====贪吃蛇全套逻辑=====
-let snake,food,dir,nextDir,score,gameLoop;
-let userSpeed = 120;
-let userSize = 16;
-let box = userSize;
+//贪吃蛇
+let snake,food,dir,nextDir,score,gameTimer;
+let userSpeed=120,userBlockSize=16;
 let skill={speed:false,passwall:false,shield:0};
-const speedSlider = document.getElementById('speedSlider');
-const sizeSlider = document.getElementById('sizeSlider');
-const speedValue = document.getElementById('speedValue');
-const sizeValue = document.getElementById('sizeValue');
-speedSlider.oninput = ()=>speedValue.textContent = speedSlider.value;
-sizeSlider.oninput = ()=>sizeValue.textContent = sizeSlider.value;
-document.getElementById('applySettingBtn').onclick = ()=>{
-    userSpeed = Number(speedSlider.value);
-    userSize = Number(sizeSlider.value);
-    alert("参数已生效，新开一局生效");
+const gameCanvas=document.getElementById("gameCanvas");
+const gctx=gameCanvas.getContext("2d");
+const scoreDom=document.getElementById("score");
+const totalScoreDom=document.getElementById("totalScore");
+const speedSlider=document.getElementById("speedSlider");
+const sizeSlider=document.getElementById("sizeSlider");
+const speedVal=document.getElementById("speedVal");
+const sizeVal=document.getElementById("sizeVal");
+speedSlider.oninput=()=>speedVal.innerText=speedSlider.value;
+sizeSlider.oninput=()=>sizeVal.innerText=sizeSlider.value;
+document.getElementById("applySettingBtn").onclick=()=>{
+userSpeed=Number(speedSlider.value);
+userBlockSize=Number(sizeSlider.value);
+alert("设置已保存，重新开始生效");
 }
-function loadTotalScore(){
-    let s = localStorage.getItem("snakeTotalScore")||0;
-    totalScoreEl.innerText = s;
+function loadSnakeStorage(){
+let s=localStorage.getItem("snakeMaxScore")||0;
+totalScoreDom.innerText=s;
 }
-function saveTotalScore(add){
-    let s = Number(localStorage.getItem("snakeTotalScore")||0)+add;
-    localStorage.setItem("snakeTotalScore",s);
-    totalScoreEl.innerText=s;
+function saveSnakeMax(){
+let old=Number(localStorage.getItem("snakeMaxScore")||0);
+if(score>old)localStorage.setItem("snakeMaxScore",score);
 }
-const totalScoreEl=document.getElementById('totalScore');
-const scoreEl=document.getElementById('score');
 function buySkill(name,cost){
-    let total = Number(localStorage.getItem("snakeTotalScore")||0);
-    if(total<cost) return alert("积分不足");
-    total -= cost;
-    localStorage.setItem("snakeTotalScore",total);
-    totalScoreEl.innerText=total;
-    name==="shield"?skill.shield++:skill[name]=true;
-    alert("购买成功，本局可用");
+if(score<cost){alert("分数不足");return}
+score-=cost;
+scoreDom.innerText=score;
+if(name==="shield") skill.shield+=1;
+else skill[name]=true;
 }
 function setDir(d){
-    if(dir === 'UP' && d === 'DOWN') return;
-    if(dir === 'DOWN' && d === 'UP') return;
-    if(dir === 'LEFT' && d === 'RIGHT') return;
-    if(dir === 'RIGHT' && d === 'LEFT') return;
-    nextDir = d;
+const map={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+const rev={up:"down",down:"up",left:"right",right:"left"};
+if(dir!==rev[d]) nextDir=d;
 }
-function init(){
-    box = userSize;
-    snake=[{x:box*4,y:box*4}];
-    dir=nextDir='RIGHT';
-    score=0;
-    skill={speed:false,passwall:false,shield:0};
-    scoreEl.textContent=score;
-    spawnFood();
+function initSnake(){
+const w=Math.floor(320/userBlockSize);
+snake=[{x:Math.floor(w/2),y:Math.floor(w/2)}];
+dir="right";nextDir="right";
+score=0;
+scoreDom.innerText=score;
+genFood();
 }
-function spawnFood(){
-    food={
-        x:Math.floor(Math.random()*(320/box))*box,
-        y:Math.floor(Math.random()*(320/box))*box
-    };
+function genFood(){
+const w=Math.floor(320/userBlockSize);
+food={x:Math.floor(Math.random()*w),y:Math.floor(Math.random()*w)};
 }
-function draw(){
-    const ctx = document.getElementById("gameCanvas").getContext("2d");
-    ctx.fillStyle='#000';
-    ctx.fillRect(0,0,320,320);
-    ctx.font = `${box-1}px sans-serif`;
-    ctx.fillText("🍎", food.x, food.y + box - 2);
-    ctx.fillStyle="#4cd964";
-    snake.forEach(p=>ctx.fillRect(p.x,p.y,box-2,box-2));
+function drawSnake(){
+gctx.fillStyle="#000";
+gctx.fillRect(0,0,320,320);
+gctx.fillStyle="#4cd964";
+snake.forEach(p=>gctx.fillRect(p.x*userBlockSize,p.y*userBlockSize,userBlockSize-1,userBlockSize-1));
+gctx.fillStyle="#ffcc00";
+gctx.fillRect(food.x*userBlockSize,food.y*userBlockSize,userBlockSize,userBlockSize);
 }
-function update(){
-    dir=nextDir;
-    let head={...snake[0]};
-    switch(dir){
-        case "UP":head.y-=box;break;
-        case "DOWN":head.y+=box;break;
-        case "LEFT":head.x-=box;break;
-        case "RIGHT":head.x+=box;break;
-    }
-    if(skill.passwall){
-        if(head.x<0) head.x=320-box;
-        if(head.x>=320) head.x=0;
-        if(head.y<0) head.y=320-box;
-        if(head.y>=320) head.y=0;
-    }else{
-        if(head.x<0||head.x>=320||head.y<0||head.y>=320){
-            if(skill.shield>0){skill.shield--;return alert(`护盾剩余${skill.shield}`);}
-            clearInterval(gameLoop);
-            saveTotalScore(score);
-            return alert(`游戏结束，得分${score}，积分存入账户`);
-        }
-    }
-    for(let p of snake){
-        if(head.x===p.x&&head.y===p.y){
-            if(skill.shield>0){skill.shield--;return alert(`护盾剩余${skill.shield}`);}
-            clearInterval(gameLoop);
-            saveTotalScore(score);
-            return alert(`游戏结束，得分${score}，积分存入账户`);
-        }
-    }
-    snake.unshift(head);
-    if(head.x===food.x){
-        score+=10;
-        scoreEl.textContent=score;
-        if(box<24) box +=0.4;
-        spawnFood();
-    }else snake.pop();
-    draw();
+function snakeStep(){
+const w=Math.floor(320/userBlockSize);
+dir=nextDir;
+const delta={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+let head={x:snake[0].x+delta[dir][0],y:snake[0].y+delta[dir][1]};
+//穿墙
+if(skill.passwall){
+if(head.x<0)head.x=w-1;
+if(head.x>=w)head.x=0;
+if(head.y<0)head.y=w-1;
+if(head.y>=w)head.y=0;
+}else{
+if(head.x<0||head.x>=w||head.y<0||head.y>=w){
+if(skill.shield>0){skill.shield--;return;}
+gameOver();return;
 }
-document.getElementById('startGameBtn').onclick = ()=>{
-    clearInterval(gameLoop);
-    init();
-    draw();
-    let interval = skill.speed ? 70 : userSpeed;
-    gameLoop = setInterval(update,interval);
 }
-document.addEventListener('keydown',e=>{
-    const map = {ArrowUp:"UP",ArrowDown:"DOWN",ArrowLeft:"LEFT",ArrowRight:"RIGHT"};
-    if(map[e.key]) setDir(map[e.key]);
+//撞自己
+for(let i=1;i<snake.length;i++){
+if(head.x===snake[i].x&&head.y===snake[i].y){
+if(skill.shield>0){skill.shield--;return;}
+gameOver();return;
+}
+}
+snake.unshift(head);
+if(head.x===food.x&&head.y===food.y){
+score+=10;scoreDom.innerText=score;saveSnakeMax();genFood();
+}else{
+snake.pop();
+}
+drawSnake();
+}
+function gameOver(){
+clearInterval(gameTimer);
+alert("游戏结束");
+}
+document.getElementById("startGameBtn").onclick=()=>{
+clearInterval(gameTimer);
+initSnake();drawSnake();
+let sp=skill.speed?(userSpeed*0.6):userSpeed;
+gameTimer=setInterval(snakeStep,sp);
+}
+document.addEventListener("keydown",e=>{
+const kmap={ArrowUp:"up",ArrowDown:"down",ArrowLeft:"left",ArrowRight:"right"};
+if(kmap[e.key]) setDir(kmap[e.key]);
 })
 
-//=====棋魂五子棋AI白子、双人围棋逻辑=====
-let chessCtx,boardSize,gridNum,cell;
-let chessMap,historyList,isAiMode;
-const chessTip = document.getElementById("chessTip");
-//切换棋盘：5人机五子棋，19双人围棋
-function switchChess(num){
-    gridNum = num===5?15:19;
-    isAiMode = num ===5;
-    let cvsFive = document.getElementById("boardFive");
-    let cvsGo = document.getElementById("boardGo");
-    cvsFive.style.display = num===5?"block":"none";
-    cvsGo.style.display = num===19?"block":"none";
-    chessCtx = num===5?cvsFive.getContext("2d"):cvsGo.getContext("2d");
-    boardSize = 360;
-    cell = boardSize / gridNum;
-    resetChess();
+//五子棋围棋
+let chessCtx,goCtx,gridCount,cellSize;
+let chessBoard,chessHistory,isAiMode;
+let aiRunning=false;
+const chessTip=document.getElementById("chessTip");
+const fiveCanvas=document.getElementById("boardFive");
+const goCanvas=document.getElementById("boardGo");
+
+function switchChess(mode){
+gridCount=mode;
+isAiMode=mode===5;
+fiveCanvas.style.display=isAiMode?"block":"none";
+goCanvas.style.display=!isAiMode?"block":"none";
+chessCtx=isAiMode?fiveCanvas.getContext("2d"):goCanvas.getContext("2d");
+cellSize=360/gridCount;
+resetChess();
 }
-function initChess(){
-    switchChess(5);
-}
-//重置棋局：人机固定玩家黑棋，AI白棋；围棋随机先后手
+function initChess(){switchChess(5);}
 function resetChess(){
-    chessMap = Array(gridNum).fill().map(()=>Array(gridNum).fill(0));
-    historyList = [];
-    if(isAiMode){
-        chessTip.innerText = "你执黑子双击落子，AI褚嬴执白子自动下棋";
-    }else{
-        let blackFirst = Math.random()>0.5;
-        chessTip.innerText = blackFirst?"黑子先手":"白子先手";
-    }
-    drawBoard();
+chessBoard=Array(gridCount).fill(0).map(()=>Array(gridCount).fill(0));
+chessHistory=[];aiRunning=false;
+if(isAiMode) chessTip.innerText="你执黑子双击落子，AI褚嬴执白子自动下棋";
+else chessTip.innerText="双人围棋模式，双击棋盘交替落子";
+drawChessBoard();
 }
-//绘制棋盘
-function drawBoard(){
-    chessCtx.clearRect(0,0,boardSize,boardSize);
-    chessCtx.strokeStyle="#333";
-    for(let i=0;i<=gridNum;i++){
-        chessCtx.beginPath();chessCtx.moveTo(i*cell,0);chessCtx.lineTo(i*cell,boardSize);chessCtx.stroke();
-        chessCtx.beginPath();chessCtx.moveTo(0,i*cell);chessCtx.lineTo(boardSize,i*cell);chessCtx.stroke();
-    }
-    //重绘所有棋子
-    historyList.forEach(item=>drawPiece(item.x,item.y,item.val));
+function drawChessBoard(){
+chessCtx.clearRect(0,0,360,360);
+chessCtx.strokeStyle="#333";
+chessCtx.lineWidth=1;
+for(let i=0;i<=gridCount;i++){
+let pos=i*cellSize;
+chessCtx.beginPath();chessCtx.moveTo(pos,0);chessCtx.lineTo(pos,360);chessCtx.stroke();
+chessCtx.beginPath();chessCtx.moveTo(0,pos);chessCtx.lineTo(360,pos);chessCtx.stroke();
 }
-//绘制棋子 1黑 2白
-function drawPiece(x,y,type){
-    chessCtx.beginPath();
-    chessCtx.arc(x*cell+cell/2,y*cell+cell/2,cell*0.42,0,Math.PI*2);
-    chessCtx.fillStyle = type===1?"#000":"#fff";
-    chessCtx.fill();
-    chessCtx.strokeStyle="#222";
-    chessCtx.stroke();
-}
-//棋盘双击落子绑定
-["boardFive","boardGo"].forEach(id=>{
-    let dom = document.getElementById(id);
-    dom.ondblclick = function(e){
-        let rect = this.getBoundingClientRect();
-        let px = e.clientX - rect.left;
-        let py = e.clientY - rect.top;
-        let x = Math.floor(px/cell);
-        let y = Math.floor(py/cell);
-        if(x<0||y<0||x>=gridNum||y>=gridNum||chessMap[y][x]!==0) return;
-        //人机五子棋固定玩家下黑子
-        if(isAiMode){
-            chessMap[y][x] = 1;
-            historyList.push({x,y,val:1});
-            drawPiece(x,y,1);
-            //判定玩家胜利
-            if(checkWin(x,y,1)){
-                setTimeout(()=>alert("恭喜你击败褚嬴，黑子获胜！"),200);
-                return;
-            }
-            //延迟调用AI白子下棋
-            setTimeout(aiPlay,350);
-        }else{
-            //围棋双人交替落子
-            let last = historyList.length>0?historyList[historyList.length-1].val:2;
-            let now = last===1?2:1;
-            chessMap[y][x] = now;
-            historyList.push({x,y,val:now});
-            drawPiece(x,y,now);
-            chessTip.innerText = now===1?"轮到白子":"轮到黑子";
-        }
-    }
+//绘制棋子
+chessHistory.forEach(({x,y,type})=>{
+chessCtx.beginPath();
+let cx=x*cellSize+cellSize/2;
+let cy=y*cellSize+cellSize/2;
+chessCtx.arc(cx,cy,cellSize*0.42,0,Math.PI*2);
+chessCtx.fillStyle=type===1?"#000":"#ffffff";
+chessCtx.fill();
+chessCtx.strokeStyle="#666";chessCtx.stroke();
 })
-//五子棋胜负检测
-function checkWin(px,py,val){
-    const dirs = [[1,0],[0,1],[1,1],[1,-1]];
-    for(let [dx,dy] of dirs){
-        let cnt=1;
-        for(let s=1;s<5;s++){
-            let nx = px+dx*s,ny=py+dy*s;
-            if(nx>=0&&ny>=0&&nx<gridNum&&ny<gridNum&&chessMap[ny][nx]==val)cnt++;
-            else break;
-        }
-        for(let s=1;s<5;s++){
-            let nx = px-dx*s,ny=py-dy*s;
-            if(nx>=0&&ny>=0&&nx<gridNum&&ny<gridNum&&chessMap[ny][nx]==val)cnt++;
-            else break;
-        }
-        if(cnt>=5)return true;
-    }
-    return false;
 }
-//AI白子下棋核心评分算法
+//双击落子
+[fiveCanvas,goCanvas].forEach(canvas=>{
+canvas.ondblclick=function(e){
+if(aiRunning) return;
+const rect=this.getBoundingClientRect();
+let px=e.clientX-rect.left;
+let py=e.clientY-rect.top;
+let x=Math.floor(px/cellSize);
+let y=Math.floor(py/cellSize);
+if(x<0||y<0||x>=gridCount||y>=gridCount||chessBoard[y][x]!==0) return;
+let stone=0;
+if(isAiMode){
+stone=1;
+}else{
+stone=chessHistory.length%2===0?1:2;
+}
+chessBoard[y][x]=stone;
+chessHistory.push({x,y,type:stone});
+drawChessBoard();
+if(isAiMode){
+//五子棋AI
+if(checkWin(x,y,stone)){
+alert("恭喜，你击败褚嬴！");return;
+}
+aiRunning=true;
+setTimeout(()=>{aiPlay();aiRunning=false;},380);
+}
+}
+})
+//五子棋胜负判定
+function checkWin(px,py,type){
+const dir=[[1,0],[0,1],[1,1],[1,-1]];
+for(let [dx,dy] of dir){
+let cnt=1;
+for(let s=1;s<5;s++){
+let nx=px+dx*s,ny=py+dy*s;
+if(nx>=0&&ny>=0&&nx<gridCount&&ny<gridCount&&chessBoard[ny][nx]===type)cnt++;else break;
+}
+for(let s=1;s<5;s++){
+let nx=px-dx*s,ny=py-dy*s;
+if(nx>=0&&ny>=0&&nx<gridCount&&ny<gridCount&&chessBoard[ny][nx]===type)cnt++;else break;
+}
+if(cnt>=5) return true;
+}
+return false;
+}
+//AI落子
 function aiPlay(){
-    let bestScore = -Infinity;
-    let bestPos = {x:7,y:7};
-    //遍历空点评估分值
-    for(let y=0;y<gridNum;y++){
-        for(let x=0;x<gridNum;x++){
-            if(chessMap[y][x]!==0) continue;
-            let score = evaluatePoint(x,y,2) + evaluatePoint(x,y,1)*0.85;
-            //优先封堵玩家成型棋型，其次自己做棋
-            if(score>bestScore){
-                bestScore = score;
-                bestPos = {x,y};
-            }
-        }
-    }
-    let ax = bestPos.x,ay=bestPos.y;
-    chessMap[ay][ax] = 2;
-    historyList.push({x:ax,y:ay,val:2});
-    drawPiece(ax,ay,2);
-    chessTip.innerText="AI褚嬴已落子，轮到你下棋";
-    if(checkWin(ax,ay,2)){
-        setTimeout(()=>alert("褚嬴取胜，再接再厉！"),200);
-    }
+let bestScore=-9999;
+let best={x:7,y:7};
+for(let y=0;y<gridCount;y++){
+for(let x=0;x<gridCount;x++){
+if(chessBoard[y][x]!==0) continue;
+let s=evaluate(x,y,2)+evaluate(x,y,1)*0.82;
+if(s>bestScore){bestScore=s;best={x,y};}
 }
-//点位棋型评分函数
-function evaluatePoint(x,y,player){
-    let total = 0;
-    const dirs = [[1,0],[0,1],[1,1],[1,-1]];
-    for(let [dx,dy] of dirs){
-        let link = 0,block=0;
-        //正向延伸
-        for(let s=1;s<=4;s++){
-            let nx=x+dx*s,ny=y+dy*s;
-            if(nx<0||ny<0||nx>=gridNum||ny>=gridNum){block++;break}
-            if(chessMap[ny][nx]==player) link++;
-            else {block++;break}
-        }
-        //反向延伸
-        for(let s=1;s<=4;s++){
-            let nx=x-dx*s,ny=y-dy*s;
-            if(nx<0||ny<0||nx>=gridNum){block++;break}
-            if(chessMap[ny][nx]==player) link++;
-            else {block++;break}
-        }
-        //棋型分值权重
-        switch(link){
-            case 0:total+=2;break;
-            case 1:total+=12;break;
-            case 2:total+=60;break;
-            case 3:total+=320;break;
-            case 4:total+=1800;break;
-        }
-        //边路点位扣分
-        if(block>=2) total = Math.floor(total*0.35);
-    }
-    return total;
+}
+let ax=best.x,ay=best.y;
+chessBoard[ay][ax]=2;
+chessHistory.push({x:ax,y:ay,type:2});
+drawChessBoard();
+if(checkWin(ax,ay,2)){
+alert("褚嬴获胜，再接再厉！");
+}
+chessTip.innerText="褚嬴已落子，请双击棋盘下棋";
+}
+function evaluate(px,py,type){
+let score=0;
+const dir=[[1,0],[0,1],[1,1],[1,-1]];
+for(let [dx,dy] of dir){
+let line=[];
+for(let s=-4;s<=4;s++){
+let nx=px+dx*s;let ny=py+dy*s;
+if(nx>=0&&ny>=0&&nx<gridCount&&ny<gridCount) line.push(chessBoard[ny][nx]);
+}
+for(let i=0;i<=line.length-5;i++){
+let slice=line.slice(i,i+5);
+let self=slice.filter(v=>v===type).length;
+let enemy=slice.filter(v=>v!==0&&v!==type).length;
+if(enemy>0) continue;
+if(self===0) score+=1;
+if(self===1) score+=12;
+if(self===2) score+=70;
+if(self===3) score+=320;
+if(self===4) score+=1600;
+}
+}
+return score;
 }
 //悔棋
 function undoChess(){
-    if(historyList.length===0) return alert("暂无棋子可撤回");
-    if(isAiMode&&historyList.length>=2){
-        //人机对局撤回玩家+AI两步
-        historyList.pop();
-        let ply = historyList.pop();
-        chessMap[ply.y][ply.x]=0;
-        drawBoard();
-        chessTip.innerText="已悔棋，请你重新落子";
-    }else{
-        let last = historyList.pop();
-        chessMap[last.y][last.x] = 0;
-        drawBoard();
-    }
+if(chessHistory.length===0){alert("没有棋子可以悔棋");return}
+if(isAiMode&&chessHistory.length>=2){
+chessHistory.pop();chessHistory.pop();
+}else{
+chessHistory.pop();
+}
+chessBoard=Array(gridCount).fill(0).map(()=>Array(gridCount).fill(0));
+chessHistory.forEach(({x,y,type})=>chessBoard[y][x]=type);
+aiRunning=false;
+drawChessBoard();
+chessTip.innerText="已悔棋，请双击棋盘落子";
 }
 </script>
 </body>
