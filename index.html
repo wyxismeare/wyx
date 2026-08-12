@@ -20,10 +20,14 @@ button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:no
 .joystick button{width:70px;height:70px;font-size:26px;margin:0;border-radius:10px;background:#27ae60;font-weight:bold}
 .void{background:transparent;border:none}
 /*拍照按钮*/
-#takeBtn{width:100%;padding:12px;border:none;background:#2563eb;color:#fff;border-radius:6px;font-size:16px;margin-top:15px}
+#takeBtn{width:100%;padding:12px;border:none;background:#2563eb;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
+#captureBtn{width:100%;padding:12px;border:none;background:#28a745;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
+#fullBtn{position:fixed;top:10px;right:10px;background:#ff6722;z-index:999}
+#videoEle{width:100%;border-radius:8px;margin-top:10px;display:block}
 </style>
 
 <body>
+<button id="fullBtn" onclick="toggleFull()">全屏/退出全屏</button>
 <div class="tab-box">
     <button class="tab" onclick="switchPage('camera')">自拍相机</button>
     <button class="tab" onclick="switchPage('snake')">贪吃蛇游戏</button>
@@ -32,7 +36,12 @@ button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:no
 <!--自拍页面-->
 <div id="camera">
     <h3>前置自拍工具</h3>
-    <div id="container"></div>
+    <div id="container">
+        <video id="videoEle" autoplay playsinline muted></video>
+        <button id="captureBtn">点击拍照</button>
+        <canvas id="shotCanvas" style="display:none;"></canvas>
+        <div id="imgBox"></div>
+    </div>
 </div>
 
 <!--贪吃蛇页面-->
@@ -74,6 +83,15 @@ button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:no
 </div>
 
 <script>
+//全屏切换
+function toggleFull(){
+    if(!document.fullscreenElement){
+        document.documentElement.requestFullscreen()
+    }else{
+        document.exitFullscreen()
+    }
+}
+
 //页面切换
 function switchPage(type){
     document.getElementById('camera').className = type==='camera'?'':'hide';
@@ -81,30 +99,44 @@ function switchPage(type){
     if(type==='snake') loadTotalScore();
 }
 
-//=====================自拍代码=====================
-(async () => {
-  const video = document.createElement("video");
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  video.muted = true;
-  let stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user" }
-  });
-  video.srcObject = stream;
-  await video.play();
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  ctx.drawImage(video, 0, 0);
-  const pic = canvas.toDataURL("image/png");
-  stream.getTracks().forEach(item => item.stop());
-  container.innerHTML = `
-  <img src="${pic}" style="width:100%;border-radius:8px;">
-  <br>
-  <a href="${pic}" download="自拍.png">
-    <button id="takeBtn">保存图片到手机</button>
-  </a>
-  `
+//=====================自拍逻辑：刷新网页自动拍1次，之后只能按钮拍照=====================
+const videoEle = document.getElementById('videoEle');
+const shotCanvas = document.getElementById('shotCanvas');
+const ctxShot = shotCanvas.getContext('2d');
+let userMediaStream = null;
+let hasAutoCaptured = false; //标记：页面生命周期内是否已经自动拍过
+
+//执行拍照函数
+function doCapture(){
+    shotCanvas.width = videoEle.videoWidth;
+    shotCanvas.height = videoEle.videoHeight;
+    ctxShot.drawImage(videoEle,0,0);
+    const imgUrl = shotCanvas.toDataURL("image/png");
+    document.getElementById('imgBox').innerHTML = `
+    <img src="${imgUrl}" style="width:100%;border-radius:8px;margin-top:10px;">
+    <a href="${imgUrl}" download="自拍图片.png">
+        <button id="takeBtn">保存图片到本地</button>
+    </a>
+    `
+}
+
+(async ()=>{
+    userMediaStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});
+    videoEle.srcObject = userMediaStream;
+    //视频准备好
+    videoEle.addEventListener('loadeddata',()=>{
+        //页面刚进来，还没自动拍过 → 自动拍一次
+        if(!hasAutoCaptured){
+            doCapture();
+            hasAutoCaptured = true; //标记，本页面不再自动拍照
+        }
+    })
 })()
+
+//点击按钮手动拍照
+document.getElementById('captureBtn').addEventListener('click',()=>{
+    doCapture();
+})
 
 //=====================贪吃蛇游戏逻辑=====================
 const canvas=document.getElementById('gameCanvas');
@@ -114,20 +146,18 @@ const totalScoreEl=document.getElementById('totalScore');
 
 let snake,food,dir,nextDir,score,gameLoop;
 let box=16;
-//技能状态
 let skill={
     speed:false,
     passwall:false,
     shield:0
 };
 
-//读取本地永久积分
+//读取永久积分
 function loadTotalScore(){
     let s = localStorage.getItem("snakeTotalScore");
     if(!s) s=0;
     totalScoreEl.innerText = s;
 }
-//保存总积分
 function saveTotalScore(add){
     let s = Number(localStorage.getItem("snakeTotalScore")||0);
     s += add;
@@ -135,7 +165,7 @@ function saveTotalScore(add){
     totalScoreEl.innerText=s;
 }
 
-//商店购买技能
+//商店购买
 function buySkill(name,cost){
     let total = Number(localStorage.getItem("snakeTotalScore")||0);
     if(total < cost){
@@ -150,7 +180,7 @@ function buySkill(name,cost){
     alert("购买成功，本局生效！");
 }
 
-//虚拟摇杆
+//摇杆控制
 function setDir(d){
     if(dir === 'UP' && d === 'DOWN') return;
     if(dir === 'DOWN' && d === 'UP') return;
@@ -164,7 +194,6 @@ function init(){
     dir='RIGHT';nextDir='RIGHT';
     score=0;
     box=16;
-    //重置本局技能
     skill.speed=false;
     skill.passwall=false;
     skill.shield=0;
@@ -172,7 +201,6 @@ function init(){
     spawnFood();
 }
 
-//生成苹果食物
 function spawnFood(){
     food={
         x:Math.floor(Math.random()*(canvas.width/box))*box,
@@ -183,10 +211,10 @@ function spawnFood(){
 function draw(){
     ctx.fillStyle='#000';
     ctx.fillRect(0,0,canvas.width,canvas.height);
-    //绘制红色苹果
-    ctx.fillStyle="#ff2222";
-    ctx.fillRect(food.x,food.y,box-2,box-2);
-    //绘制蛇，身体随box变大
+    //绘制苹果emoji食物
+    ctx.font = `${box-1}px sans-serif`;
+    ctx.fillText("🍎", food.x, food.y + box - 2);
+    //绘制蛇体
     ctx.fillStyle="#4cd964";
     snake.forEach(p=>ctx.fillRect(p.x,p.y,box-2,box-2));
 }
@@ -199,14 +227,13 @@ function update(){
     if(dir==="LEFT") head.x-=box;
     if(dir==="RIGHT") head.x+=box;
 
-    //穿墙技能
+    //穿墙判定
     if(skill.passwall){
         if(head.x<0) head.x = canvas.width-box;
         if(head.x>=canvas.width) head.x=0;
         if(head.y<0) head.y = canvas.height-box;
         if(head.y>=canvas.height) head.y=0;
     }else{
-        //撞墙判定
         if(head.x<0||head.x>=canvas.width||head.y<0||head.y>=canvas.height){
             if(skill.shield>0){
                 skill.shield--;
@@ -220,7 +247,7 @@ function update(){
         }
     }
 
-    //撞到自身
+    //撞自身判定
     for(let p of snake){
         if(head.x===p.x&&head.y===p.y){
             if(skill.shield>0){
@@ -236,11 +263,10 @@ function update(){
     }
 
     snake.unshift(head);
-    //吃到苹果，变长+蛇身体变大一点
     if(head.x===food.x&&head.y===food.y){
         score+=10;
         scoreEl.textContent=score;
-        if(box<24) box +=0.4; //蛇身体逐步变大
+        if(box<24) box +=0.4;
         spawnFood();
     }else{
         snake.pop();
@@ -256,7 +282,7 @@ function startGame(){
     gameLoop=setInterval(update,delay);
 }
 
-//键盘方向控制
+//键盘方向
 document.addEventListener('keydown',(e)=>{
     switch(e.key){
         case 'ArrowUp': setDir('UP');break;
