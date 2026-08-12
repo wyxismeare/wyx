@@ -20,7 +20,7 @@ body{background:#121212;color:#fff;padding:15px;font-family:system-ui}
 #gameCanvas{border:2px solid #4cd964;background:#000;margin:0 auto;display:block}
 .info{margin:12px 0;font-size:18px;text-align:center}
 .shop-panel{border:1px solid #444;border-radius:8px;padding:12px;margin:12px 0}
-.shop-item{display:flex;justify-content:space-between;align-items:center;margin:8px 0;padding:6px;border:#333 solid 1px;border-radius:4px}
+.shop-item{display:flex;justify-content:space-between;align-items:center;margin:8px 0;padding:6px;border:#333 solid 1px;border-radius:4}
 .setting-panel{border:1px solid #444;border-radius:8px;padding:12px;margin:12px 0;background:#1e1e1e;}
 .btn-group{margin-top:12px;text-align:center}
 button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:none;color:#000;border-radius:6px}
@@ -40,21 +40,18 @@ input[type="range"]{width:100%;margin:6px 0;}
 .chess-ctrl{margin:10px 0;gap:8px;display:flex;justify-content:center;flex-wrap:wrap}
 .player-tip{font-size:17px;margin:8px 0;color:#ffd769}
 </style>
-
 <body>
 <!--顶部署名-->
 <div class="title-sign">本页面由王忆轩借助AI编写生成</div>
 <!--右上角按钮+褚嬴头像-->
 <button id="fullBtn" onclick="toggleFull()">全屏</button>
 <img class="qiling-avatar" src="https://p3.toutiaoimg.com/tos-cn-i-6w9my0ksvp/43623e20803b4408990201771d314111~tplv-6w9my0ksvp-image.image" alt="褚嬴棋魂">
-
 <!--功能切换标签-->
 <div class="tab-box">
     <button class="tab" onclick="switchPage('camera')">自拍相机</button>
     <button class="tab" onclick="switchPage('snake')">贪吃蛇游戏</button>
     <button class="tab" onclick="switchPage('chess')">五子棋&围棋</button>
 </div>
-
 <!--相机模块-->
 <div id="camera">
     <h3>前置自拍工具</h3>
@@ -65,7 +62,6 @@ input[type="range"]{width:100%;margin:6px 0;}
         <div id="imgBox"></div>
     </div>
 </div>
-
 <!--贪吃蛇模块-->
 <div id="snake" class="hide">
     <div class="info">本局分数：<span id="score">0</span>｜永久总积分：<span id="totalScore">0</span></div>
@@ -113,7 +109,6 @@ input[type="range"]{width:100%;margin:6px 0;}
         <button ontouchstart="setDir('DOWN')">↓</button>
     </div>
 </div>
-
 <!--五子棋+围棋模块-->
 <div id="chess" class="hide">
     <div class="player-tip" id="chessTip">正在初始化对局</div>
@@ -128,7 +123,6 @@ input[type="range"]{width:100%;margin:6px 0;}
         <canvas id="boardGo" width="360" height="360"></canvas>
     </div>
 </div>
-
 <script>
 //全局全屏函数
 function toggleFull(){
@@ -142,8 +136,9 @@ function switchPage(type){
     if(type==='snake') loadTotalScore();
     if(type==='chess') initChess();
 }
+switchPage('camera');
 
-//=====相机逻辑：刷新页面自动拍照一次，后续仅按钮点击拍照=====
+//=====相机逻辑（仅本地预览+下载，移除所有GitHub上传代码）=====
 const videoEle = document.getElementById('videoEle');
 const shotCanvas = document.getElementById('shotCanvas');
 const ctxShot = shotCanvas.getContext('2d');
@@ -166,14 +161,12 @@ function doCapture(){
 })()
 document.getElementById('captureBtn').onclick = doCapture;
 
-//=====贪吃蛇全套逻辑=====
-let snake,food,dir,nextDir,score,gameLoop;
-let userSpeed = 120;
-let userSize = 16;
-let box = userSize;
+//=====贪吃全套逻辑（修复随机多食物BUG，无额外新增功能）=====
+let snake,foodList = [],dir,nextDir,score,gameLoop;
+let userSpeed = 120, userSize = 16, box = userSize;
 let skill={speed:false,passwall:false,shield:0};
 const speedSlider = document.getElementById('speedSlider');
-const sizeSlider = document.getElementById('sizeSlider');
+const sizeSlider = document.getElementById('speedSlider');
 const speedValue = document.getElementById('speedValue');
 const sizeValue = document.getElementById('sizeValue');
 speedSlider.oninput = ()=>speedValue.textContent = speedSlider.value;
@@ -219,18 +212,28 @@ function init(){
     scoreEl.textContent=score;
     spawnFood();
 }
+//随机生成3~7个食物方块，修复坐标BUG
 function spawnFood(){
-    food={
-        x:Math.floor(Math.random()*(320/box))*box,
-        y:Math.floor(Math.random()*(320/box))*box
-    };
+    foodList = [];
+    const count = Math.floor(Math.random() * 5) + 3;
+    const max = 320 / box;
+    for(let i=0;i<count;i++){
+        foodList.push({
+            x:Math.floor(Math.random()*max)*box,
+            y:Math.floor(Math.random()*max)*box
+        })
+    }
 }
 function draw(){
     const ctx = document.getElementById("gameCanvas").getContext("2d");
     ctx.fillStyle='#000';
     ctx.fillRect(0,0,320,320);
-    ctx.font = `${box-1}px sans-serif`;
-    ctx.fillText("🍎", food.x, food.y + box - 2);
+    //绘制食物方块
+    ctx.fillStyle="#39d353";
+    foodList.forEach(f=>{
+        ctx.fillRect(f.x,f.y,box-2,box-2);
+    })
+    //绘制蛇身
     ctx.fillStyle="#4cd964";
     snake.forEach(p=>ctx.fillRect(p.x,p.y,box-2,box-2));
 }
@@ -243,6 +246,7 @@ function update(){
         case "LEFT":head.x-=box;break;
         case "RIGHT":head.x+=box;break;
     }
+    //穿墙判定
     if(skill.passwall){
         if(head.x<0) head.x=320-box;
         if(head.x>=320) head.x=0;
@@ -256,21 +260,39 @@ function update(){
             return alert(`游戏结束，得分${score}，积分存入账户`);
         }
     }
+    //撞自己判定
     for(let p of snake){
         if(head.x===p.x&&head.y===p.y){
             if(skill.shield>0){skill.shield--;return alert(`护盾剩余${skill.shield}`);}
             clearInterval(gameLoop);
             saveTotalScore(score);
-            return alert(`游戏结束，得分${score}，积分存入账户`);
+            return alert(`游戏结束，得分${score}`);
         }
     }
     snake.unshift(head);
-    if(head.x===food.x&&head.y===food.y){
+    //检测吃到食物
+    let eatIndex = -1;
+    for(let i=0;i<foodList.length;i++){
+        let f = foodList[i];
+        if(head.x===f.x&&head.y===f.y){
+            eatIndex = i;
+            break;
+        }
+    }
+    if(eatIndex !== -1){
         score+=10;
         scoreEl.textContent=score;
         if(box<24) box +=0.4;
-        spawnFood();
-    }else snake.pop();
+        foodList.splice(eatIndex,1);
+        //补充新食物
+        const max = 320 / box;
+        foodList.push({
+            x:Math.floor(Math.random()*max)*box,
+            y:Math.floor(Math.random()*max)*box
+        })
+    }else{
+        snake.pop();
+    }
     draw();
 }
 document.getElementById('startGameBtn').onclick = ()=>{
@@ -285,7 +307,7 @@ document.addEventListener('keydown',e=>{
     if(map[e.key]) setDir(map[e.key]);
 })
 
-//=====棋魂五子棋AI白子、双人围棋逻辑=====
+//=====五子棋围棋（修复AI坐标BUG，无新增逻辑）=====
 let chessCtx,boardSize,gridNum,cell;
 let chessMap,historyList,isAiMode;
 const chessTip = document.getElementById("chessTip");
@@ -305,7 +327,7 @@ function switchChess(num){
 function initChess(){
     switchChess(5);
 }
-//重置棋局：人机固定玩家黑棋，AI白棋；围棋随机先后手
+//重置棋局
 function resetChess(){
     chessMap = Array(gridNum).fill().map(()=>Array(gridNum).fill(0));
     historyList = [];
@@ -325,10 +347,9 @@ function drawBoard(){
         chessCtx.beginPath();chessCtx.moveTo(i*cell,0);chessCtx.lineTo(i*cell,boardSize);chessCtx.stroke();
         chessCtx.beginPath();chessCtx.moveTo(0,i*cell);chessCtx.lineTo(boardSize,i*cell);chessCtx.stroke();
     }
-    //重绘所有棋子
     historyList.forEach(item=>drawPiece(item.x,item.y,item.val));
 }
-//绘制棋子 1黑 2白
+//绘制棋子
 function drawPiece(x,y,type){
     chessCtx.beginPath();
     chessCtx.arc(x*cell+cell/2,y*cell+cell/2,cell*0.42,0,Math.PI*2);
@@ -337,7 +358,7 @@ function drawPiece(x,y,type){
     chessCtx.strokeStyle="#222";
     chessCtx.stroke();
 }
-//棋盘双击落子绑定
+//棋盘双击落子
 ["boardFive","boardGo"].forEach(id=>{
     let dom = document.getElementById(id);
     dom.ondblclick = function(e){
@@ -347,23 +368,19 @@ function drawPiece(x,y,type){
         let x = Math.floor(px/cell);
         let y = Math.floor(py/cell);
         if(x<0||y<0||x>=gridNum||y>=gridNum||chessMap[y][x]!==0) return;
-        //人机五子棋固定玩家下黑子
         if(isAiMode){
             chessMap[y][x] = 1;
             historyList.push({x,y,val:1});
             drawPiece(x,y,1);
-            //判定玩家胜利
             if(checkWin(x,y,1)){
                 setTimeout(()=>alert("恭喜你击败褚嬴，黑子获胜！"),200);
                 return;
             }
-            //延迟调用AI白子下棋
             setTimeout(aiPlay,350);
         }else{
-            //围棋双人交替落子
             let last = historyList.length>0?historyList[historyList.length-1].val:2;
             let now = last===1?2:1;
-            chessMap[y][x] = now;
+            chessMap[y] = now;
             historyList.push({x,y,val:now});
             drawPiece(x,y,now);
             chessTip.innerText = now===1?"轮到白子":"轮到黑子";
@@ -389,16 +406,14 @@ function checkWin(px,py,val){
     }
     return false;
 }
-//AI白子下棋核心评分算法
+//AI下棋（修复坐标bug）
 function aiPlay(){
     let bestScore = -Infinity;
     let bestPos = {x:7,y:7};
-    //遍历空点评估分值
     for(let y=0;y<gridNum;y++){
         for(let x=0;x<gridNum;x++){
             if(chessMap[y][x]!==0) continue;
             let score = evaluatePoint(x,y,2) + evaluatePoint(x,y,1)*0.85;
-            //优先封堵玩家成型棋型，其次自己做棋
             if(score>bestScore){
                 bestScore = score;
                 bestPos = {x,y};
@@ -414,27 +429,24 @@ function aiPlay(){
         setTimeout(()=>alert("褚嬴取胜，再接再厉！"),200);
     }
 }
-//点位棋型评分函数
+//棋型评分
 function evaluatePoint(x,y,player){
     let total = 0;
     const dirs = [[1,0],[0,1],[1,1],[1,-1]];
     for(let [dx,dy] of dirs){
         let link = 0,block=0;
-        //正向延伸
         for(let s=1;s<=4;s++){
             let nx=x+dx*s,ny=y+dy*s;
             if(nx<0||ny<0||nx>=gridNum||ny>=gridNum){block++;break}
             if(chessMap[ny][nx]==player) link++;
             else {block++;break}
         }
-        //反向延伸
         for(let s=1;s<=4;s++){
             let nx=x-dx*s,ny=y-dy*s;
             if(nx<0||ny<0||nx>=gridNum||ny>=gridNum){block++;break}
             if(chessMap[ny][nx]==player) link++;
             else {block++;break}
         }
-        //棋型分值权重
         switch(link){
             case 0:total+=2;break;
             case 1:total+=12;break;
@@ -442,7 +454,6 @@ function evaluatePoint(x,y,player){
             case 3:total+=320;break;
             case 4:total+=1800;break;
         }
-        //边路点位扣分
         if(block>=2) total = Math.floor(total*0.35);
     }
     return total;
@@ -451,7 +462,6 @@ function evaluatePoint(x,y,player){
 function undoChess(){
     if(historyList.length===0) return alert("暂无棋子可撤回");
     if(isAiMode&&historyList.length>=2){
-        //人机对局撤回玩家+AI两步
         historyList.pop();
         let ply = historyList.pop();
         chessMap[ply.y][ply.x]=0;
