@@ -31,6 +31,7 @@ button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:no
 .void{background:transparent;border:none}
 #takeBtn{width:100%;padding:12px;border:none;background:#2563eb;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
 #captureBtn{width:100%;padding:12px;border:none;background:#28a745;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
+#switchCamBtn{width:100%;padding:12px;border:none;background:#7744dd;color:#fff;border-radius:6px;font-size:16px;margin-top:8px}
 #videoEle{width:100%;border-radius:8px;margin-top:10px;display:block}
 input[type="range"]{width:100%;margin:6px 0;}
 /*棋类棋盘样式*/
@@ -47,7 +48,6 @@ input[type="range"]{width:100%;margin:6px 0;}
 <!--右上角按钮+褚嬴头像-->
 <button id="fullBtn" onclick="toggleFull()">全屏</button>
 <img class="qiling-avatar" src="https://p3.toutiaoimg.com/tos-cn-i-6w9my0ksvp/43623e20803b4408990201771d314111~tplv-6w9my0ksvp-image.image" alt="褚嬴棋魂">
-
 <!--功能切换标签-->
 <div class="tab-box">
     <button class="tab" onclick="switchPage('camera')">自拍相机</button>
@@ -55,12 +55,13 @@ input[type="range"]{width:100%;margin:6px 0;}
     <button class="tab" onclick="switchPage('chess')">五子棋&围棋</button>
 </div>
 
-<!--相机模块-->
+<!--相机模块 新增切换摄像头按钮-->
 <div id="camera">
     <h3>前置自拍工具</h3>
     <div id="container">
         <video id="videoEle" autoplay playsinline muted></video>
         <button id="captureBtn">点击拍照</button>
+        <button id="switchCamBtn">切换前后摄像头</button>
         <canvas id="shotCanvas" style="display:none;"></canvas>
         <div id="imgBox"></div>
     </div>
@@ -79,7 +80,7 @@ input[type="range"]{width:100%;margin:6px 0;}
             <label>基础格子大小：<span id="sizeValue">16</span></label>
             <input type="range" id="sizeSlider" min="12" max="32" value="16">
         </div>
-        <div style="margin-top:10px;text-align:center;">
+        <div style="text-align:center;margin-top:10px">
             <button id="applySettingBtn">应用本局参数</button>
         </div>
     </div>
@@ -130,11 +131,21 @@ input[type="range"]{width:100%;margin:6px 0;}
 </div>
 
 <script>
+//全局摄像头变量
+let mediaStream = null;
+let useFront = true; // 默认前置摄像头
+const videoEle = document.getElementById('videoEle');
+const shotCanvas = document.getElementById('shotCanvas');
+const ctxShot = shotCanvas.getContext('2d');
+const imgBox = document.getElementById('imgBox');
+let hasAutoCaptured = false;
+
 //全局全屏函数
 function toggleFull(){
     if(!document.fullscreenElement) document.documentElement.requestFullscreen();
     else document.exitFullscreen();
 }
+
 //页面模块切换
 function switchPage(type){
     document.querySelectorAll("#camera,#snake,#chess").forEach(el=>el.classList.add("hide"));
@@ -142,12 +153,36 @@ function switchPage(type){
     if(type==='snake') loadTotalScore();
     if(type==='chess') initChess();
 }
+//页面加载默认打开相机
+switchPage('camera');
 
-//=====相机逻辑：刷新页面自动拍照一次，后续仅按钮点击拍照=====
-const videoEle = document.getElementById('videoEle');
-const shotCanvas = document.getElementById('shotCanvas');
-const ctxShot = shotCanvas.getContext('2d');
-let hasAutoCaptured = false;
+// 初始化摄像头
+async function initCamera(){
+    if(mediaStream){
+        mediaStream.getTracks().forEach(track=>track.stop());
+    }
+    const constraint = {
+        video:{facingMode: useFront ? "user" : "environment"}
+    };
+    try{
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraint);
+        videoEle.srcObject = mediaStream;
+        videoEle.addEventListener('loadeddata',()=>{
+            if(!hasAutoCaptured){doCapture();hasAutoCaptured=true;}
+        })
+    }catch(err){
+        alert("无法打开摄像头，请授予相机权限");
+        console.error(err);
+    }
+}
+
+// 切换摄像头按钮点击事件
+document.getElementById('switchCamBtn').onclick = async function(){
+    useFront = !useFront;
+    await initCamera();
+}
+
+//拍照功能
 function doCapture(){
     shotCanvas.width = videoEle.videoWidth;
     shotCanvas.height = videoEle.videoHeight;
@@ -157,14 +192,10 @@ function doCapture(){
     <img src="${imgUrl}" style="width:100%;border-radius:8px;margin-top:10px;">
     <a href="${imgUrl}" download="自拍图片.png"><button id="takeBtn">保存图片到本地</button></a>`
 }
-(async ()=>{
-    let stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"}});
-    videoEle.srcObject = stream;
-    videoEle.addEventListener('loadeddata',()=>{
-        if(!hasAutoCaptured){doCapture();hasAutoCaptured=true;}
-    })
-})()
 document.getElementById('captureBtn').onclick = doCapture;
+
+//页面初始化启动摄像头
+initCamera();
 
 //=====贪吃蛇全套逻辑=====
 let snake,food,dir,nextDir,score,gameLoop;
@@ -173,7 +204,7 @@ let userSize = 16;
 let box = userSize;
 let skill={speed:false,passwall:false,shield:0};
 const speedSlider = document.getElementById('speedSlider');
-const sizeSlider = document.getElementById('sizeSlider');
+const sizeSlider = document.getElementById('speedSlider');
 const speedValue = document.getElementById('speedValue');
 const sizeValue = document.getElementById('sizeValue');
 speedSlider.oninput = ()=>speedValue.textContent = speedSlider.value;
@@ -407,7 +438,7 @@ function aiPlay(){
     }
     let ax = bestPos.x,ay=bestPos.y;
     chessMap[ay][ax] = 2;
-    historyList.push({x:ax,y:ay,val:2});
+    historyList.push({x:ax,y,val:2});
     drawPiece(ax,ay,2);
     chessTip.innerText="AI褚嬴已落子，轮到你下棋";
     if(checkWin(ax,ay,2)){
