@@ -7,8 +7,9 @@
 body{background:#121212;color:#fff;padding:15px;font-family:system-ui}
 /*顶部署名*/
 .title-sign{text-align:center;margin:8px 0;color:#60a5fa;font-size:18px;}
-/*全屏按钮固定右上角，头像紧挨全屏按钮*/
-#fullBtn{position:fixed;top:10px;right:80px;background:#ff6722;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
+/*全屏、音乐按钮、褚嬴头像 右上角固定*/
+#fullBtn{position:fixed;top:10px;right:130px;background:#ff6722;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
+#musicBtn{position:fixed;top:10px;right:80px;background:#28a745;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
 .qiling-avatar{
     position:fixed;top:8px;right:10px;width:52px;height:52px;border-radius:50%;
     border:2px solid #60a5fa;z-index:1000;object-fit:cover;
@@ -26,26 +27,33 @@ body{background:#121212;color:#fff;padding:15px;font-family:system-ui}
 button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:none;color:#000;border-radius:6px}
 #applySettingBtn{background:#2563eb;color:#fff;}
 #startGameBtn{background:#4cd964;color:#000;}
-.joystick{margin-top:20px;display:grid;grid-template-columns:70px 70px 70px;gap:8px;justify-content:center}
+.joystick{margin-top:20px;display:grid;grid-template-columns:70px 70px;grid-template-rows:70px 70px 70px;gap:8px;justify-content:center}
 .joystick button{width:70px;height:70px;font-size:26px;margin:0;border-radius:10px;background:#27ae60;font-weight:bold}
 .void{background:transparent;border:none}
 #takeBtn{width:100%;padding:12px;border:none;background:#2563eb;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
-#captureBtn{width:100%;padding:12px;border:none;background:#28a745;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
+#captureBtn{width:100%;padding:12px;border:none;background:#28a745;color:#fff;border-radius:6px;margin-top:10px}
 #videoEle{width:100%;border-radius:8px;margin-top:10px;display:block}
 input[type="range"]{width:100%;margin:6px 0;}
 /*棋类棋盘样式*/
 .chess-wrap{max-width:360px;margin:0 auto;text-align:center;margin-top:15px}
 #boardFive{background:#DEB887;border:3px solid #8b572a}
 #boardGo{background:#DEB887;border:3px solid #8b572a;display:none}
-.chess-ctrl{margin:10px 0;gap:8px;display:flex;justify-content:center}
+.chess-ctrl{margin:10px 0;gap:8px;display:flex;justify-content:center;flex-wrap:wrap}
 .player-tip{font-size:17px;margin:8px 0;color:#ffd769}
+audio{display:none;}
 </style>
 
 <body>
+<!--背景音乐播放器 隐藏-->
+<audio id="chessBgm" loop preload="auto">
+    <source src="https://music.163.com/song/media/outer/url?id=1448720020.mp3" type="audio/mpeg">
+
+
 <!--顶部署名-->
 <div class="title-sign">本页面由王忆轩借助AI编写生成</div>
-<!--右上角按钮+褚嬴头像-->
+<!--右上角控制按钮+褚嬴头像-->
 <button id="fullBtn" onclick="toggleFull()">全屏</button>
+<button id="musicBtn" onclick="toggleBgm()">暂停音乐</button>
 <img class="qiling-avatar" src="https://p3.toutiaoimg.com/tos-cn-i-6w9my0ksvp/43623e20803b4408990201771d314111~tplv-6w9my0ksvp-image.image" alt="褚嬴棋魂">
 
 <!--功能切换标签-->
@@ -117,10 +125,10 @@ input[type="range"]{width:100%;margin:6px 0;}
 
 <!--五子棋+围棋模块-->
 <div id="chess" class="hide">
-    <div class="player-tip" id="chessTip">正在随机分配执棋颜色...</div>
+    <div class="player-tip" id="chessTip">你执黑子双击落子，AI褚嬴执白子自动下棋</div>
     <div class="chess-ctrl">
-        <button onclick="switchChess(5)">五子棋</button>
-        <button onclick="switchChess(19)">围棋</button>
+        <button onclick="switchChess(5)">人机五子棋(AI白子)</button>
+        <button onclick="switchChess(19)">双人围棋</button>
         <button onclick="resetChess()">重新开局</button>
         <button onclick="undoChess()">悔棋一步</button>
     </div>
@@ -131,15 +139,38 @@ input[type="range"]{width:100%;margin:6px 0;}
 </div>
 
 <script>
+//音频全局变量
+const bgm = document.getElementById("chessBgm");
+const musicBtn = document.getElementById("musicBtn");
+//音乐切换按钮
+function toggleBgm(){
+    if(bgm.paused){
+        bgm.play();
+        musicBtn.innerText = "暂停音乐";
+    }else{
+        bgm.pause();
+        musicBtn.innerText = "播放音乐";
+    }
+}
+
 //全局全屏函数
 function toggleFull(){
     if(!document.fullscreenElement) document.documentElement.requestFullscreen();
     else document.exitFullscreen();
 }
-//页面模块切换
+
+//页面模块切换【核心：切棋页播放BGM，其他页面暂停】
 function switchPage(type){
     document.querySelectorAll("#camera,#snake,#chess").forEach(el=>el.classList.add("hide"));
     document.getElementById(type).classList.remove("hide");
+    //切换页面控制背景音乐
+    if(type === "chess"){
+        bgm.play().catch(e=>console.log("首次点击页面后音乐才能播放"));
+        musicBtn.innerText = "暂停音乐";
+    }else{
+        bgm.pause();
+        musicBtn.innerText = "播放音乐";
+    }
     if(type==='snake') loadTotalScore();
     if(type==='chess') initChess();
 }
@@ -266,7 +297,7 @@ function update(){
         }
     }
     snake.unshift(head);
-    if(head.x===food.x&&head.y===food.y){
+    if(head.x===food.x){
         score+=10;
         scoreEl.textContent=score;
         if(box<24) box +=0.4;
@@ -286,13 +317,14 @@ document.addEventListener('keydown',e=>{
     if(map[e.key]) setDir(map[e.key]);
 })
 
-//=====棋魂五子棋+围棋核心逻辑：双击落子、随机先手、悔棋、切换棋盘=====
+//=====棋魂五子棋AI白子、双人围棋逻辑=====
 let chessCtx,boardSize,gridNum,cell;
-let chessMap,historyList,curPlayer; //curPlayer:true黑子先行 false白子
+let chessMap,historyList,isAiMode;
 const chessTip = document.getElementById("chessTip");
-//切换棋盘规格 5=五子棋15路棋盘，19=围棋19路
+//切换棋盘：5人机五子棋，19双人围棋
 function switchChess(num){
     gridNum = num===5?15:19;
+    isAiMode = num ===5;
     let cvsFive = document.getElementById("boardFive");
     let cvsGo = document.getElementById("boardGo");
     cvsFive.style.display = num===5?"block":"none";
@@ -302,19 +334,22 @@ function switchChess(num){
     cell = boardSize / gridNum;
     resetChess();
 }
-//初始化棋局，随机分配黑白先手
 function initChess(){
     switchChess(5);
 }
-//重置棋局随机先手
+//重置棋局：人机固定玩家黑棋，AI白棋；围棋随机先后手
 function resetChess(){
-    chessMap = Array(gridNum).fill().map(()=>Array(gridNum).fill(0));//0空 1黑 2白
+    chessMap = Array(gridNum).fill().map(()=>Array(gridNum).fill(0));
     historyList = [];
-    curPlayer = Math.random()>0.5; //随机true黑先手 false白先手
-    chessTip.innerText = curPlayer?"本局您执黑子先行":"本局您执白子先行";
+    if(isAiMode){
+        chessTip.innerText = "你执黑子双击落子，AI褚嬴执白子自动下棋";
+    }else{
+        let blackFirst = Math.random()>0.5;
+        chessTip.innerText = blackFirst?"黑子先手":"白子先手";
+    }
     drawBoard();
 }
-//绘制棋盘线条
+//绘制棋盘
 function drawBoard(){
     chessCtx.clearRect(0,0,boardSize,boardSize);
     chessCtx.strokeStyle="#333";
@@ -322,8 +357,10 @@ function drawBoard(){
         chessCtx.beginPath();chessCtx.moveTo(i*cell,0);chessCtx.lineTo(i*cell,boardSize);chessCtx.stroke();
         chessCtx.beginPath();chessCtx.moveTo(0,i*cell);chessCtx.lineTo(boardSize,i*cell);chessCtx.stroke();
     }
+    //重绘所有棋子
+    historyList.forEach(item=>drawPiece(item.x,item.y,item.val));
 }
-//绘制棋子
+//绘制棋子 1黑 2白
 function drawPiece(x,y,type){
     chessCtx.beginPath();
     chessCtx.arc(x*cell+cell/2,y*cell+cell/2,cell*0.42,0,Math.PI*2);
@@ -332,7 +369,7 @@ function drawPiece(x,y,type){
     chessCtx.strokeStyle="#222";
     chessCtx.stroke();
 }
-//双击画布落子
+//棋盘双击落子绑定
 ["boardFive","boardGo"].forEach(id=>{
     let dom = document.getElementById(id);
     dom.ondblclick = function(e){
@@ -341,20 +378,31 @@ function drawPiece(x,y,type){
         let py = e.clientY - rect.top;
         let x = Math.floor(px/cell);
         let y = Math.floor(py/cell);
-        if(x<0||y<0||x>=gridNum||y>=gridNum||chessMap[y][x]!==0)return;
-        let piece = curPlayer?1:2;
-        chessMap[y][x] = piece;
-        historyList.push({x,y,val:piece});
-        drawPiece(x,y,piece);
-        curPlayer = !curPlayer;
-        chessTip.innerText = curPlayer?"轮到黑子落子":"轮到白子落子";
-        //五子棋胜负判定
-        if(gridNum===15 && checkWin(x,y,piece)){
-            setTimeout(()=>alert(piece===1?"黑子获胜":"白子获胜"),200);
+        if(x<0||y<0||x>=gridNum||y>=gridNum||chessMap[y][x]!==0) return;
+        //人机五子棋固定玩家下黑子
+        if(isAiMode){
+            chessMap[y][x] = 1;
+            historyList.push({x,y,val:1});
+            drawPiece(x,y,1);
+            //判定玩家胜利
+            if(checkWin(x,y,1)){
+                setTimeout(()=>alert("恭喜你击败褚嬴，黑子获胜！"),200);
+                return;
+            }
+            //延迟调用AI白子下棋
+            setTimeout(aiPlay,350);
+        }else{
+            //围棋双人交替落子
+            let last = historyList.length>0?historyList[historyList.length-1].val:2;
+            let now = last===1?2:1;
+            chessMap[y][x] = now;
+            historyList.push({x,y,val:now});
+            drawPiece(x,y,now);
+            chessTip.innerText = now===1?"轮到白子":"轮到黑子";
         }
     }
 })
-//五子棋五连珠判定
+//五子棋胜负检测
 function checkWin(px,py,val){
     const dirs = [[1,0],[0,1],[1,1],[1,-1]];
     for(let [dx,dy] of dirs){
@@ -373,16 +421,79 @@ function checkWin(px,py,val){
     }
     return false;
 }
+//AI白子下棋核心评分算法
+function aiPlay(){
+    let bestScore = -Infinity;
+    let bestPos = {x:7,y:7};
+    //遍历空点评估分值
+    for(let y=0;y<gridNum;y++){
+        for(let x=0;x<gridNum;x++){
+            if(chessMap[y][x]!==0) continue;
+            let score = evaluatePoint(x,y,2) + evaluatePoint(x,y,1)*0.85;
+            //优先封堵玩家成型棋型，其次自己做棋
+            if(score>bestScore){
+                bestScore = score;
+                bestPos = {x,y};
+            }
+        }
+    }
+    let ax = bestPos.x,ay=bestPos.y;
+    chessMap[ay][ax] = 2;
+    historyList.push({x:ax,y:ay,val:2});
+    drawPiece(ax,ay,2);
+    chessTip.innerText="AI褚嬴已落子，轮到你下棋";
+    if(checkWin(ax,ay,2)){
+        setTimeout(()=>alert("褚嬴取胜，再接再厉！"),200);
+    }
+}
+//点位棋型评分函数
+function evaluatePoint(x,y,player){
+    let total = 0;
+    const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+    for(let [dx,dy] of dirs){
+        let link = 0,block=0;
+        //正向延伸
+        for(let s=1;s<=4;s++){
+            let nx=x+dx*s,ny=y+dy*s;
+            if(nx<0||ny<0||nx>=gridNum||ny>=gridNum){block++;break}
+            if(chessMap[ny][nx]==player) link++;
+            else {block++;break}
+        }
+        //反向延伸
+        for(let s=1;s<=4;s++){
+            let nx=x-dx*s,ny=y-dy*s;
+            if(nx<0||ny<0||nx>=gridNum){block++;break}
+            if(chessMap[ny][nx]==player) link++;
+            else {block++;break}
+        }
+        //棋型分值权重
+        switch(link){
+            case 0:total+=2;break;
+            case 1:total+=12;break;
+            case 2:total+=60;break;
+            case 3:total+=320;break;
+            case 4:total+=1800;break;
+        }
+        //边路点位扣分
+        if(block>=2) total = Math.floor(total*0.35);
+    }
+    return total;
+}
 //悔棋
 function undoChess(){
-    if(historyList.length===0)return alert("暂无棋子可撤回");
-    let last = historyList.pop();
-    chessMap[last.y][last.x] = 0;
-    drawBoard();
-    //重绘剩余棋子
-    historyList.forEach(item=>drawPiece(item.x,item.y,item.val));
-    curPlayer = !curPlayer;
-    chessTip.innerText = curPlayer?"轮到黑子落子":"轮到白子落子";
+    if(historyList.length===0) return alert("暂无棋子可撤回");
+    if(isAiMode&&historyList.length>=2){
+        //人机对局撤回玩家+AI两步
+        historyList.pop();
+        let ply = historyList.pop();
+        chessMap[ply.y][ply.x]=0;
+        drawBoard();
+        chessTip.innerText="已悔棋，请你重新落子";
+    }else{
+        let last = historyList.pop();
+        chessMap[last.y][last.x] = 0;
+        drawBoard();
+    }
 }
 </script>
 </body>
