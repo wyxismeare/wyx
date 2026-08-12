@@ -1,13 +1,22 @@
 <!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1,user-scalable=no">
-<title>工具合集</title>
+<title>多功能网页合集</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#121212;color:#fff;padding:15px;font-family:system-ui}
-.tab-box{display:flex;gap:10px;margin-bottom:15px}
+/*顶部署名*/
+.title-sign{text-align:center;margin:8px 0;color:#60a5fa;font-size:18px;}
+/*全屏按钮固定右上角，头像紧挨全屏按钮*/
+#fullBtn{position:fixed;top:10px;right:80px;background:#ff6722;border:none;color:#fff;padding:6px 10px;border-radius:4px;z-index:999}
+.qiling-avatar{
+    position:fixed;top:8px;right:10px;width:52px;height:52px;border-radius:50%;
+    border:2px solid #60a5fa;z-index:1000;object-fit:cover;
+}
+.tab-box{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap}
 .tab{padding:10px 20px;border:none;border-radius:6px;background:#2563eb;color:#fff;font-size:16px}
 .hide{display:none}
+/*贪吃蛇样式*/
 #gameCanvas{border:2px solid #4cd964;background:#000;margin:0 auto;display:block}
 .info{margin:12px 0;font-size:18px;text-align:center}
 .shop-panel{border:1px solid #444;border-radius:8px;padding:12px;margin:12px 0}
@@ -22,20 +31,31 @@ button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:no
 .void{background:transparent;border:none}
 #takeBtn{width:100%;padding:12px;border:none;background:#2563eb;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
 #captureBtn{width:100%;padding:12px;border:none;background:#28a745;color:#fff;border-radius:6px;font-size:16px;margin-top:10px}
-#fullBtn{position:fixed;top:10px;right:10px;background:#ff6722;z-index:999}
 #videoEle{width:100%;border-radius:8px;margin-top:10px;display:block}
 input[type="range"]{width:100%;margin:6px 0;}
-.title-sign{text-align:center;margin:8px 0;color:#60a5fa;font-size:18px;}
+/*棋类棋盘样式*/
+.chess-wrap{max-width:360px;margin:0 auto;text-align:center;margin-top:15px}
+#boardFive{background:#DEB887;border:3px solid #8b572a}
+#boardGo{background:#DEB887;border:3px solid #8b572a;display:none}
+.chess-ctrl{margin:10px 0;gap:8px;display:flex;justify-content:center}
+.player-tip{font-size:17px;margin:8px 0;color:#ffd769}
 </style>
 
 <body>
+<!--顶部署名-->
 <div class="title-sign">本页面由王忆轩借助AI编写生成</div>
-<button id="fullBtn" onclick="toggleFull()">全屏/退出全屏</button>
+<!--右上角按钮+褚嬴头像-->
+<button id="fullBtn" onclick="toggleFull()">全屏</button>
+<img class="qiling-avatar" src="https://p3.toutiaoimg.com/tos-cn-i-6w9my0ksvp/43623e20803b4408990201771d314111~tplv-6w9my0ksvp-image.image" alt="褚嬴棋魂">
+
+<!--功能切换标签-->
 <div class="tab-box">
     <button class="tab" onclick="switchPage('camera')">自拍相机</button>
     <button class="tab" onclick="switchPage('snake')">贪吃蛇游戏</button>
+    <button class="tab" onclick="switchPage('chess')">五子棋&围棋</button>
 </div>
 
+<!--相机模块-->
 <div id="camera">
     <h3>前置自拍工具</h3>
     <div id="container">
@@ -46,9 +66,9 @@ input[type="range"]{width:100%;margin:6px 0;}
     </div>
 </div>
 
+<!--贪吃蛇模块-->
 <div id="snake" class="hide">
     <div class="info">本局分数：<span id="score">0</span>｜永久总积分：<span id="totalScore">0</span></div>
-
     <div class="setting-panel">
         <h4>🎮 参数自定义</h4>
         <div style="margin-top:10px;">
@@ -63,7 +83,6 @@ input[type="range"]{width:100%;margin:6px 0;}
             <button id="applySettingBtn">应用本局参数</button>
         </div>
     </div>
-
     <div class="shop-panel">
         <h4>🏪技能商店</h4>
         <div class="shop-item">
@@ -79,7 +98,6 @@ input[type="range"]{width:100%;margin:6px 0;}
             <button onclick="buySkill('shield',150)">购买</button>
         </div>
     </div>
-
     <canvas id="gameCanvas" width="320" height="320"></canvas>
     <div class="btn-group">
         <button id="startGameBtn">开始游戏</button>
@@ -97,20 +115,36 @@ input[type="range"]{width:100%;margin:6px 0;}
     </div>
 </div>
 
+<!--五子棋+围棋模块-->
+<div id="chess" class="hide">
+    <div class="player-tip" id="chessTip">正在随机分配执棋颜色...</div>
+    <div class="chess-ctrl">
+        <button onclick="switchChess(5)">五子棋</button>
+        <button onclick="switchChess(19)">围棋</button>
+        <button onclick="resetChess()">重新开局</button>
+        <button onclick="undoChess()">悔棋一步</button>
+    </div>
+    <div class="chess-wrap">
+        <canvas id="boardFive" width="360" height="360"></canvas>
+        <canvas id="boardGo" width="360" height="360"></canvas>
+    </div>
+</div>
+
 <script>
-//全屏
+//全局全屏函数
 function toggleFull(){
     if(!document.fullscreenElement) document.documentElement.requestFullscreen();
     else document.exitFullscreen();
 }
-//页面切换
+//页面模块切换
 function switchPage(type){
-    document.getElementById('camera').className = type==='camera'?'':'hide';
-    document.getElementById('snake').className = type==='snake'?'':'hide';
+    document.querySelectorAll("#camera,#snake,#chess").forEach(el=>el.classList.add("hide"));
+    document.getElementById(type).classList.remove("hide");
     if(type==='snake') loadTotalScore();
+    if(type==='chess') initChess();
 }
 
-//相机逻辑：刷新页面自动拍照一次，后续仅按钮拍照
+//=====相机逻辑：刷新页面自动拍照一次，后续仅按钮点击拍照=====
 const videoEle = document.getElementById('videoEle');
 const shotCanvas = document.getElementById('shotCanvas');
 const ctxShot = shotCanvas.getContext('2d');
@@ -133,28 +167,23 @@ function doCapture(){
 })()
 document.getElementById('captureBtn').onclick = doCapture;
 
-//游戏全局变量
+//=====贪吃蛇全套逻辑=====
 let snake,food,dir,nextDir,score,gameLoop;
 let userSpeed = 120;
 let userSize = 16;
 let box = userSize;
 let skill={speed:false,passwall:false,shield:0};
-
-//滑块数值同步
 const speedSlider = document.getElementById('speedSlider');
 const sizeSlider = document.getElementById('sizeSlider');
 const speedValue = document.getElementById('speedValue');
 const sizeValue = document.getElementById('sizeValue');
 speedSlider.oninput = ()=>speedValue.textContent = speedSlider.value;
 sizeSlider.oninput = ()=>sizeValue.textContent = sizeSlider.value;
-//应用参数
 document.getElementById('applySettingBtn').onclick = ()=>{
     userSpeed = Number(speedSlider.value);
     userSize = Number(sizeSlider.value);
     alert("参数已生效，新开一局生效");
 }
-
-//积分持久化
 function loadTotalScore(){
     let s = localStorage.getItem("snakeTotalScore")||0;
     totalScoreEl.innerText = s;
@@ -166,8 +195,6 @@ function saveTotalScore(add){
 }
 const totalScoreEl=document.getElementById('totalScore');
 const scoreEl=document.getElementById('score');
-
-//商店购买
 function buySkill(name,cost){
     let total = Number(localStorage.getItem("snakeTotalScore")||0);
     if(total<cost) return alert("积分不足");
@@ -177,8 +204,6 @@ function buySkill(name,cost){
     name==="shield"?skill.shield++:skill[name]=true;
     alert("购买成功，本局可用");
 }
-
-//方向锁定防折返
 function setDir(d){
     if(dir === 'UP' && d === 'DOWN') return;
     if(dir === 'DOWN' && d === 'UP') return;
@@ -186,8 +211,6 @@ function setDir(d){
     if(dir === 'RIGHT' && d === 'LEFT') return;
     nextDir = d;
 }
-
-//初始化本局
 function init(){
     box = userSize;
     snake=[{x:box*4,y:box*4}];
@@ -203,7 +226,6 @@ function spawnFood(){
         y:Math.floor(Math.random()*(320/box))*box
     };
 }
-//绘制苹果+蛇
 function draw(){
     const ctx = document.getElementById("gameCanvas").getContext("2d");
     ctx.fillStyle='#000';
@@ -213,7 +235,6 @@ function draw(){
     ctx.fillStyle="#4cd964";
     snake.forEach(p=>ctx.fillRect(p.x,p.y,box-2,box-2));
 }
-
 function update(){
     dir=nextDir;
     let head={...snake[0]};
@@ -223,7 +244,6 @@ function update(){
         case "LEFT":head.x-=box;break;
         case "RIGHT":head.x+=box;break;
     }
-    //穿墙逻辑
     if(skill.passwall){
         if(head.x<0) head.x=320-box;
         if(head.x>=320) head.x=0;
@@ -237,7 +257,6 @@ function update(){
             return alert(`游戏结束，得分${score}，积分存入账户`);
         }
     }
-    //撞身体
     for(let p of snake){
         if(head.x===p.x&&head.y===p.y){
             if(skill.shield>0){skill.shield--;return alert(`护盾剩余${skill.shield}`);}
@@ -255,21 +274,115 @@ function update(){
     }else snake.pop();
     draw();
 }
-
-//绑定开始游戏
 document.getElementById('startGameBtn').onclick = ()=>{
     clearInterval(gameLoop);
     init();
     draw();
-    //加速技能优先级高于自定义速度
     let interval = skill.speed ? 70 : userSpeed;
     gameLoop = setInterval(update,interval);
 }
-
-//键盘方向
 document.addEventListener('keydown',e=>{
     const map = {ArrowUp:"UP",ArrowDown:"DOWN",ArrowLeft:"LEFT",ArrowRight:"RIGHT"};
     if(map[e.key]) setDir(map[e.key]);
 })
+
+//=====棋魂五子棋+围棋核心逻辑：双击落子、随机先手、悔棋、切换棋盘=====
+let chessCtx,boardSize,gridNum,cell;
+let chessMap,historyList,curPlayer; //curPlayer:true黑子先行 false白子
+const chessTip = document.getElementById("chessTip");
+//切换棋盘规格 5=五子棋15路棋盘，19=围棋19路
+function switchChess(num){
+    gridNum = num===5?15:19;
+    let cvsFive = document.getElementById("boardFive");
+    let cvsGo = document.getElementById("boardGo");
+    cvsFive.style.display = num===5?"block":"none";
+    cvsGo.style.display = num===19?"block":"none";
+    chessCtx = num===5?cvsFive.getContext("2d"):cvsGo.getContext("2d");
+    boardSize = 360;
+    cell = boardSize / gridNum;
+    resetChess();
+}
+//初始化棋局，随机分配黑白先手
+function initChess(){
+    switchChess(5);
+}
+//重置棋局随机先手
+function resetChess(){
+    chessMap = Array(gridNum).fill().map(()=>Array(gridNum).fill(0));//0空 1黑 2白
+    historyList = [];
+    curPlayer = Math.random()>0.5; //随机true黑先手 false白先手
+    chessTip.innerText = curPlayer?"本局您执黑子先行":"本局您执白子先行";
+    drawBoard();
+}
+//绘制棋盘线条
+function drawBoard(){
+    chessCtx.clearRect(0,0,boardSize,boardSize);
+    chessCtx.strokeStyle="#333";
+    for(let i=0;i<=gridNum;i++){
+        chessCtx.beginPath();chessCtx.moveTo(i*cell,0);chessCtx.lineTo(i*cell,boardSize);chessCtx.stroke();
+        chessCtx.beginPath();chessCtx.moveTo(0,i*cell);chessCtx.lineTo(boardSize,i*cell);chessCtx.stroke();
+    }
+}
+//绘制棋子
+function drawPiece(x,y,type){
+    chessCtx.beginPath();
+    chessCtx.arc(x*cell+cell/2,y*cell+cell/2,cell*0.42,0,Math.PI*2);
+    chessCtx.fillStyle = type===1?"#000":"#fff";
+    chessCtx.fill();
+    chessCtx.strokeStyle="#222";
+    chessCtx.stroke();
+}
+//双击画布落子
+["boardFive","boardGo"].forEach(id=>{
+    let dom = document.getElementById(id);
+    dom.ondblclick = function(e){
+        let rect = this.getBoundingClientRect();
+        let px = e.clientX - rect.left;
+        let py = e.clientY - rect.top;
+        let x = Math.floor(px/cell);
+        let y = Math.floor(py/cell);
+        if(x<0||y<0||x>=gridNum||y>=gridNum||chessMap[y][x]!==0)return;
+        let piece = curPlayer?1:2;
+        chessMap[y][x] = piece;
+        historyList.push({x,y,val:piece});
+        drawPiece(x,y,piece);
+        curPlayer = !curPlayer;
+        chessTip.innerText = curPlayer?"轮到黑子落子":"轮到白子落子";
+        //五子棋胜负判定
+        if(gridNum===15 && checkWin(x,y,piece)){
+            setTimeout(()=>alert(piece===1?"黑子获胜":"白子获胜"),200);
+        }
+    }
+})
+//五子棋五连珠判定
+function checkWin(px,py,val){
+    const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+    for(let [dx,dy] of dirs){
+        let cnt=1;
+        for(let s=1;s<5;s++){
+            let nx = px+dx*s,ny=py+dy*s;
+            if(nx>=0&&ny>=0&&nx<gridNum&&ny<gridNum&&chessMap[ny][nx]==val)cnt++;
+            else break;
+        }
+        for(let s=1;s<5;s++){
+            let nx = px-dx*s,ny=py-dy*s;
+            if(nx>=0&&ny>=0&&nx<gridNum&&ny<gridNum&&chessMap[ny][nx]==val)cnt++;
+            else break;
+        }
+        if(cnt>=5)return true;
+    }
+    return false;
+}
+//悔棋
+function undoChess(){
+    if(historyList.length===0)return alert("暂无棋子可撤回");
+    let last = historyList.pop();
+    chessMap[last.y][last.x] = 0;
+    drawBoard();
+    //重绘剩余棋子
+    historyList.forEach(item=>drawPiece(item.x,item.y,item.val));
+    curPlayer = !curPlayer;
+    chessTip.innerText = curPlayer?"轮到黑子落子":"轮到白子落子";
+}
 </script>
 </body>
