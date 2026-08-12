@@ -8,17 +8,22 @@ body{background:#121212;color:#fff;padding:15px;font-family:system-ui}
 .tab-box{display:flex;gap:10px;margin-bottom:15px}
 .tab{padding:10px 20px;border:none;border-radius:6px;background:#2563eb;color:#fff;font-size:16px}
 .hide{display:none}
-/*贪吃蛇样式*/
-#gameCanvas{border:2px solid #4cd964;background:#000}
-.info{margin:12px 0;font-size:18px}
-.btn-group{margin-top:12px}
-button{padding:8px 16px;font-size:16px;margin:0 4px;background:#4cd964;border:none;color:#000;border-radius:6px}
+/*贪吃蛇画布*/
+#gameCanvas{border:2px solid #4cd964;background:#000;margin:0 auto;display:block}
+.info{margin:12px 0;font-size:18px;text-align:center}
+.shop-panel{border:1px solid #444;border-radius:8px;padding:12px;margin:12px 0}
+.shop-item{display:flex;justify-content:space-between;align-items:center;margin:8px 0;padding:6px;border:#333 solid 1px;border-radius:4px}
+.btn-group{margin-top:12px;text-align:center}
+button{padding:8px 12px;font-size:15px;margin:0 4px;background:#4cd964;border:none;color:#000;border-radius:6px}
+/*虚拟摇杆按钮组*/
+.joystick{margin-top:20px;display:grid;grid-template-columns:70px 70px 70px;gap:8px;justify-content:center}
+.joystick button{width:70px;height:70px;font-size:26px;margin:0;border-radius:10px;background:#27ae60;font-weight:bold}
+.void{background:transparent;border:none}
 /*拍照按钮*/
 #takeBtn{width:100%;padding:12px;border:none;background:#2563eb;color:#fff;border-radius:6px;font-size:16px;margin-top:15px}
 </style>
 
 <body>
-<!--切换标签-->
 <div class="tab-box">
     <button class="tab" onclick="switchPage('camera')">自拍相机</button>
     <button class="tab" onclick="switchPage('snake')">贪吃蛇游戏</button>
@@ -32,10 +37,39 @@ button{padding:8px 16px;font-size:16px;margin:0 4px;background:#4cd964;border:no
 
 <!--贪吃蛇页面-->
 <div id="snake" class="hide">
-    <div class="info">分数：<span id="score">0</span></div>
+    <div class="info">本局分数：<span id="score">0</span>｜永久总积分：<span id="totalScore">0</span></div>
+
+    <div class="shop-panel">
+        <h4>🏪技能商店</h4>
+        <div class="shop-item">
+            <span>⚡加速(本局生效) - 50积分</span>
+            <button onclick="buySkill('speed',50)">购买</button>
+        </div>
+        <div class="shop-item">
+            <span>🌌穿墙(本局生效) - 100积分</span>
+            <button onclick="buySkill('passwall',100)">购买</button>
+        </div>
+        <div class="shop-item">
+            <span>🛡护盾1次(本局生效) - 150积分</span>
+            <button onclick="buySkill('shield',150)">购买</button>
+        </div>
+    </div>
+
     <canvas id="gameCanvas" width="320" height="320"></canvas>
     <div class="btn-group">
         <button onclick="startGame()">开始游戏</button>
+    </div>
+    <!--虚拟摇杆-->
+    <div class="joystick">
+        <button class="void"></button>
+        <button ontouchstart="setDir('UP')">↑</button>
+        <button class="void"></button>
+        <button ontouchstart="setDir('LEFT')">←</button>
+        <button class="void"></button>
+        <button ontouchstart="setDir('RIGHT')">→</button>
+        <button class="void"></button>
+        <button ontouchstart="setDir('DOWN')">↓</button>
+        <button class="void"></button>
     </div>
 </div>
 
@@ -44,6 +78,7 @@ button{padding:8px 16px;font-size:16px;margin:0 4px;background:#4cd964;border:no
 function switchPage(type){
     document.getElementById('camera').className = type==='camera'?'':'hide';
     document.getElementById('snake').className = type==='snake'?'':'hide';
+    if(type==='snake') loadTotalScore();
 }
 
 //=====================自拍代码=====================
@@ -71,33 +106,91 @@ function switchPage(type){
   `
 })()
 
-//=====================贪吃蛇代码=====================
+//=====================贪吃蛇游戏逻辑=====================
 const canvas=document.getElementById('gameCanvas');
 const ctx=canvas.getContext('2d');
 const scoreEl=document.getElementById('score');
-const box=16;
+const totalScoreEl=document.getElementById('totalScore');
+
 let snake,food,dir,nextDir,score,gameLoop;
+let box=16;
+//技能状态
+let skill={
+    speed:false,
+    passwall:false,
+    shield:0
+};
+
+//读取本地永久积分
+function loadTotalScore(){
+    let s = localStorage.getItem("snakeTotalScore");
+    if(!s) s=0;
+    totalScoreEl.innerText = s;
+}
+//保存总积分
+function saveTotalScore(add){
+    let s = Number(localStorage.getItem("snakeTotalScore")||0);
+    s += add;
+    localStorage.setItem("snakeTotalScore",s);
+    totalScoreEl.innerText=s;
+}
+
+//商店购买技能
+function buySkill(name,cost){
+    let total = Number(localStorage.getItem("snakeTotalScore")||0);
+    if(total < cost){
+        alert("积分不足！");
+        return;
+    }
+    total -= cost;
+    localStorage.setItem("snakeTotalScore",total);
+    totalScoreEl.innerText=total;
+    if(name==="shield") skill.shield +=1;
+    else skill[name]=true;
+    alert("购买成功，本局生效！");
+}
+
+//虚拟摇杆
+function setDir(d){
+    if(dir === 'UP' && d === 'DOWN') return;
+    if(dir === 'DOWN' && d === 'UP') return;
+    if(dir === 'LEFT' && d === 'RIGHT') return;
+    if(dir === 'RIGHT' && d === 'LEFT') return;
+    nextDir = d;
+}
 
 function init(){
     snake=[{x:box*4,y:box*4}];
     dir='RIGHT';nextDir='RIGHT';
-    score=0;scoreEl.textContent=score;
+    score=0;
+    box=16;
+    //重置本局技能
+    skill.speed=false;
+    skill.passwall=false;
+    skill.shield=0;
+    scoreEl.textContent=score;
     spawnFood();
 }
+
+//生成苹果食物
 function spawnFood(){
     food={
         x:Math.floor(Math.random()*(canvas.width/box))*box,
         y:Math.floor(Math.random()*(canvas.height/box))*box
     };
 }
+
 function draw(){
     ctx.fillStyle='#000';
     ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle="#ff3b30";
-    ctx.fillRect(food.x,food.y,box-1,box-1);
+    //绘制红色苹果
+    ctx.fillStyle="#ff2222";
+    ctx.fillRect(food.x,food.y,box-2,box-2);
+    //绘制蛇，身体随box变大
     ctx.fillStyle="#4cd964";
-    snake.forEach(p=>ctx.fillRect(p.x,p.y,box-1,box-1));
+    snake.forEach(p=>ctx.fillRect(p.x,p.y,box-2,box-2));
 }
+
 function update(){
     dir=nextDir;
     let head={...snake[0]};
@@ -105,43 +198,71 @@ function update(){
     if(dir==="DOWN") head.y+=box;
     if(dir==="LEFT") head.x-=box;
     if(dir==="RIGHT") head.x+=box;
-    //撞墙判定
-    if(head.x<0||head.x>=canvas.width||head.y<0||head.y>=canvas.height){
-        clearInterval(gameLoop);
-        alert("游戏结束，本次得分："+score);
-        return;
-    }
-    //撞到自身
-    for(let p of snake){
-        if(head.x===p.x&&head.y===p.y){
+
+    //穿墙技能
+    if(skill.passwall){
+        if(head.x<0) head.x = canvas.width-box;
+        if(head.x>=canvas.width) head.x=0;
+        if(head.y<0) head.y = canvas.height-box;
+        if(head.y>=canvas.height) head.y=0;
+    }else{
+        //撞墙判定
+        if(head.x<0||head.x>=canvas.width||head.y<0||head.y>=canvas.height){
+            if(skill.shield>0){
+                skill.shield--;
+                alert("护盾抵挡撞击！剩余护盾："+skill.shield);
+                return;
+            }
             clearInterval(gameLoop);
-            alert("撞到身体，游戏结束，得分："+score);
+            saveTotalScore(score);
+            alert("游戏结束，本局得分："+score+"，积分已存入永久账户");
             return;
         }
     }
+
+    //撞到自身
+    for(let p of snake){
+        if(head.x===p.x&&head.y===p.y){
+            if(skill.shield>0){
+                skill.shield--;
+                alert("护盾抵挡撞击！剩余护盾："+skill.shield);
+                return;
+            }
+            clearInterval(gameLoop);
+            saveTotalScore(score);
+            alert("撞到身体，游戏结束，本局得分："+score+"，积分已存入永久账户");
+            return;
+        }
+    }
+
     snake.unshift(head);
+    //吃到苹果，变长+蛇身体变大一点
     if(head.x===food.x&&head.y===food.y){
         score+=10;
         scoreEl.textContent=score;
+        if(box<24) box +=0.4; //蛇身体逐步变大
         spawnFood();
     }else{
         snake.pop();
     }
     draw();
 }
+
 function startGame(){
     clearInterval(gameLoop);
     init();
     draw();
-    gameLoop=setInterval(update,120);
+    let delay = skill.speed ? 70 : 120;
+    gameLoop=setInterval(update,delay);
 }
+
 //键盘方向控制
 document.addEventListener('keydown',(e)=>{
     switch(e.key){
-        case 'ArrowUp':if(dir!=='DOWN') nextDir='UP';break;
-        case 'ArrowDown':if(dir!=='UP') nextDir='DOWN';break;
-        case 'ArrowLeft':if(dir!=='RIGHT') nextDir='LEFT';break;
-        case 'ArrowRight':if(dir!=='LEFT') nextDir='RIGHT';break;
+        case 'ArrowUp': setDir('UP');break;
+        case 'ArrowDown': setDir('DOWN');break;
+        case 'ArrowLeft': setDir('LEFT');break;
+        case 'ArrowRight': setDir('RIGHT');break;
     }
 })
 </script>
