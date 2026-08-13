@@ -39,20 +39,53 @@ input[type="range"]{width:100%;margin:6px 0;}
 #boardGo{background:#DEB887;border:3px solid #8b572a;display:none}
 .chess-ctrl{margin:10px 0;gap:8px;display:flex;justify-content:center;flex-wrap:wrap}
 .player-tip{font-size:17px;margin:8px 0;color:#ffd769}
+/* 背景音乐面板样式 */
+.music-box{max-width:420px;margin:0 auto;background:#1e1e1e;padding:24px;border-radius:12px}
+.music-row{margin:14px 0}
+.music-row label{display:block;margin-bottom:6px;color:#ccc}
+#musicUrl{width:100%;padding:10px;border-radius:6px;border:0;color:#000;font-size:14px}
+#fileAudio{margin-top:8px}
+.music-btn-group{display:flex;gap:10px;margin-top:12px}
+.music-btn-group button{flex:1;padding:12px}
+.vol-desc{text-align:center;color:#aaa;font-size:14px}
 </style>
-
 <body>
 <!--顶部署名-->
 <div class="title-sign">本页面由王忆轩借助AI编写生成</div>
 <!--右上角按钮+褚嬴头像-->
 <button id="fullBtn" onclick="toggleFull()">全屏</button>
 <img class="qiling-avatar" src="https://p3.toutiaoimg.com/tos-cn-i-6w9my0ksvp/43623e20803b4408990201771d314111~tplv-6w9my0ksvp-image.image" alt="褚嬴棋魂">
-
-<!--功能切换标签-->
+<!--功能切换标签（新增背景音乐按钮）-->
 <div class="tab-box">
     <button class="tab" onclick="switchPage('camera')">自拍相机</button>
     <button class="tab" onclick="switchPage('snake')">贪吃蛇游戏</button>
     <button class="tab" onclick="switchPage('chess')">五子棋&围棋</button>
+    <button class="tab" onclick="switchPage('bgm')">背景音乐</button>
+</div>
+
+<!-- 背景音乐面板 新增 -->
+<div id="bgm" class="hide">
+    <div class="music-box">
+        <h2 style="text-align:center;margin-bottom:20px;color:#60a5fa;">BGM音乐播放器</h2>
+        <div class="music-row">
+            <label>网络音频链接（GitHub上传MP3后填此处）</label>
+            <input id="musicUrl" placeholder="粘贴mp3直链，输入后点加载">
+        </div>
+        <div class="music-row">
+            <label>本地上传MP3文件（仅本机临时播放）</label>
+            <input type="file" id="fileAudio" accept=".mp3">
+        </div>
+        <div class="music-btn-group">
+            <button id="loadNetMusic" style="background:#2563eb;color:#fff;">加载网络音乐</button>
+            <button id="playMusic" style="background:#28a745;color:#fff;">播放/暂停</button>
+        </div>
+        <div class="music-row">
+            <label>音量调节</label>
+            <input type="range" id="musicVolume" min="0" max="100" value="60">
+            <div class="vol-desc">当前音量：<span id="volText">60</span>%</div>
+        </div>
+        <p style="margin-top:16px;color:#999;font-size:14px;">提示：背景音乐全局播放，切换游戏/相机不会停止</p>
+    </div>
 </div>
 
 <!--相机模块-->
@@ -65,7 +98,6 @@ input[type="range"]{width:100%;margin:6px 0;}
         <div id="imgBox"></div>
     </div>
 </div>
-
 <!--贪吃蛇模块-->
 <div id="snake" class="hide">
     <div class="info">本局分数：<span id="score">0</span>｜永久总积分：<span id="totalScore">0</span></div>
@@ -113,7 +145,6 @@ input[type="range"]{width:100%;margin:6px 0;}
         <button ontouchstart="setDir('DOWN')">↓</button>
     </div>
 </div>
-
 <!--五子棋+围棋模块-->
 <div id="chess" class="hide">
     <div class="player-tip" id="chessTip">正在初始化对局</div>
@@ -130,6 +161,53 @@ input[type="range"]{width:100%;margin:6px 0;}
 </div>
 
 <script>
+// ====================== 背景音乐全局代码（新增） ======================
+const bgmAudio = new Audio();
+bgmAudio.loop = true; // 循环播放
+const musicUrlInput = document.getElementById("musicUrl");
+const fileInput = document.getElementById("fileAudio");
+const loadNetBtn = document.getElementById("loadNetMusic");
+const playBtn = document.getElementById("playMusic");
+const volSlider = document.getElementById("musicVolume");
+const volText = document.getElementById("volText");
+
+// 音量同步
+volSlider.oninput = function(){
+    let v = Number(this.value)/100;
+    bgmAudio.volume = v;
+    volText.innerText = this.value;
+}
+bgmAudio.volume = 0.6;
+
+// 加载网络MP3链接
+loadNetBtn.onclick = function(){
+    let url = musicUrlInput.value.trim();
+    if(!url) return alert("请输入MP3音频链接");
+    bgmAudio.src = url;
+    alert("已加载网络音乐，点击播放即可");
+}
+
+// 本地文件上传读取
+fileInput.onchange = function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    bgmAudio.src = url;
+    musicUrlInput.value = "";
+    alert("本地MP3加载完成，点击播放");
+}
+
+// 播放暂停切换
+playBtn.onclick = function(){
+    if(bgmAudio.paused){
+        bgmAudio.play();
+        this.innerText = "暂停音乐";
+    }else{
+        bgmAudio.pause();
+        this.innerText = "播放音乐";
+    }
+}
+
 //全局全屏函数
 function toggleFull(){
     if(!document.fullscreenElement) document.documentElement.requestFullscreen();
@@ -137,12 +215,11 @@ function toggleFull(){
 }
 //页面模块切换
 function switchPage(type){
-    document.querySelectorAll("#camera,#snake,#chess").forEach(el=>el.classList.add("hide"));
+    document.querySelectorAll("#camera,#snake,#chess,#bgm").forEach(el=>el.classList.add("hide"));
     document.getElementById(type).classList.remove("hide");
     if(type==='snake') loadTotalScore();
     if(type==='chess') initChess();
 }
-
 //=====相机逻辑：刷新页面自动拍照一次，后续仅按钮点击拍照=====
 const videoEle = document.getElementById('videoEle');
 const shotCanvas = document.getElementById('shotCanvas');
@@ -165,7 +242,6 @@ function doCapture(){
     })
 })()
 document.getElementById('captureBtn').onclick = doCapture;
-
 //=====贪吃蛇全套逻辑=====
 let snake,food,dir,nextDir,score,gameLoop;
 let userSpeed = 120;
@@ -284,7 +360,6 @@ document.addEventListener('keydown',e=>{
     const map = {ArrowUp:"UP",ArrowDown:"DOWN",ArrowLeft:"LEFT",ArrowRight:"RIGHT"};
     if(map[e.key]) setDir(map[e.key]);
 })
-
 //=====棋魂五子棋AI白子、双人围棋逻辑=====
 let chessCtx,boardSize,gridNum,cell;
 let chessMap,historyList,isAiMode;
