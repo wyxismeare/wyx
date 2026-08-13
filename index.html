@@ -63,20 +63,22 @@ input[type="range"]{width:100%;margin:6px 0;}
     <button class="tab" onclick="switchPage('bgm')">背景音乐</button>
 </div>
 
-<!-- 背景音乐面板 新增 -->
+<!-- 背景音乐面板 已添加黄色大字提示 -->
 <div id="bgm" class="hide">
     <div class="music-box">
         <h2 style="text-align:center;margin-bottom:20px;color:#60a5fa;">BGM音乐播放器</h2>
+        <div style="font-size:22px;color:#ffdd44;text-align:center;margin:10px 0;font-weight:bold;">输入 bgm.mp3 有彩蛋</div>
+
         <div class="music-row">
-            <label>网络音频链接（GitHub上传MP3后填此处）</label>
-            <input id="musicUrl" placeholder="粘贴mp3直链，输入后点加载">
+            <label>网络音频链接 / BGM文件名.mp3</label>
+            <input id="musicUrl" placeholder="示例：bgm.mp3">
         </div>
         <div class="music-row">
             <label>本地上传MP3文件（仅本机临时播放）</label>
             <input type="file" id="fileAudio" accept=".mp3">
         </div>
         <div class="music-btn-group">
-            <button id="loadNetMusic" style="background:#2563eb;color:#fff;">加载网络音乐</button>
+            <button id="loadNetMusic" style="background:#2563eb;color:#fff;">加载网络/仓库音乐</button>
             <button id="playMusic" style="background:#28a745;color:#fff;">播放/暂停</button>
         </div>
         <div class="music-row">
@@ -84,7 +86,7 @@ input[type="range"]{width:100%;margin:6px 0;}
             <input type="range" id="musicVolume" min="0" max="100" value="60">
             <div class="vol-desc">当前音量：<span id="volText">60</span>%</div>
         </div>
-        <p style="margin-top:16px;color:#999;font-size:14px;">提示：背景音乐全局播放，切换游戏/相机不会停止</p>
+        <p style="margin-top:16px;color:#999;font-size:14px;">提示：MP3和index.html放同一个仓库目录</p>
     </div>
 </div>
 
@@ -161,17 +163,18 @@ input[type="range"]{width:100%;margin:6px 0;}
 </div>
 
 <script>
-// ====================== 背景音乐全局代码（新增） ======================
+// ====================== 背景音乐【修复本地文件无法播放】 ======================
 const bgmAudio = new Audio();
-bgmAudio.loop = true; // 循环播放
+bgmAudio.loop = true;
 const musicUrlInput = document.getElementById("musicUrl");
 const fileInput = document.getElementById("fileAudio");
 const loadNetBtn = document.getElementById("loadNetMusic");
 const playBtn = document.getElementById("playMusic");
 const volSlider = document.getElementById("musicVolume");
 const volText = document.getElementById("volText");
+let tempObjectUrl = "";
 
-// 音量同步
+// 音量调节
 volSlider.oninput = function(){
     let v = Number(this.value)/100;
     bgmAudio.volume = v;
@@ -179,34 +182,65 @@ volSlider.oninput = function(){
 }
 bgmAudio.volume = 0.6;
 
-// 加载网络MP3链接
+// 加载仓库/网络音频
 loadNetBtn.onclick = function(){
     let url = musicUrlInput.value.trim();
-    if(!url) return alert("请输入MP3音频链接");
+    if(!url) return alert("请输入音频路径，如 bgm.mp3");
+    // 彩蛋判断：输入bgm.mp3弹出提示
+    if(url === "bgm.mp3"){
+        alert("🎉彩蛋触发！找到隐藏BGM啦！");
+    }
+    // 释放之前本地文件资源，防止占用
+    if(tempObjectUrl) URL.revokeObjectURL(tempObjectUrl);
+    tempObjectUrl = "";
     bgmAudio.src = url;
-    alert("已加载网络音乐，点击播放即可");
+    bgmAudio.load();
+    alert("音频资源已加载，点击播放按钮");
 }
 
-// 本地文件上传读取
+// 本地MP3上传逻辑修复
 fileInput.onchange = function(e){
     const file = e.target.files[0];
     if(!file) return;
-    const url = URL.createObjectURL(file);
-    bgmAudio.src = url;
+    // 仅允许mp3格式
+    if(file.type !== "audio/mpeg" && !file.name.endsWith(".mp3")){
+        return alert("仅支持 .mp3 格式音频文件！");
+    }
+    // 释放上一次本地音频，防止内存冲突
+    if(tempObjectUrl){
+        URL.revokeObjectURL(tempObjectUrl);
+    }
+    // 生成本地临时播放地址
+    tempObjectUrl = URL.createObjectURL(file);
+    bgmAudio.src = tempObjectUrl;
+    bgmAudio.load();
     musicUrlInput.value = "";
-    alert("本地MP3加载完成，点击播放");
+    alert(`已载入本地音频：${file.name}，点击播放即可`);
 }
 
-// 播放暂停切换
-playBtn.onclick = function(){
-    if(bgmAudio.paused){
-        bgmAudio.play();
-        this.innerText = "暂停音乐";
-    }else{
-        bgmAudio.pause();
-        this.innerText = "播放音乐";
+// 播放/暂停 增加异常捕获
+playBtn.onclick = async function(){
+    if(!bgmAudio.src){
+        return alert("未加载任何音频！先上传本地文件或填写音频路径");
+    }
+    try{
+        if(bgmAudio.paused){
+            await bgmAudio.play();
+            this.innerText = "暂停音乐";
+        }else{
+            bgmAudio.pause();
+            this.innerText = "播放音乐";
+        }
+    }catch(error){
+        console.error("播放失败详情：", error);
+        alert(`播放失败：${error.message}\n1.文件不是mp3\n2.浏览器拦截音频\n3.本地文件打开会跨域，建议用GitHub Pages线上打开测试`);
     }
 }
+
+// 页面卸载时释放本地音频资源，防止报错
+window.addEventListener("beforeunload",()=>{
+    if(tempObjectUrl) URL.revokeObjectURL(tempObjectUrl);
+})
 
 //全局全屏函数
 function toggleFull(){
